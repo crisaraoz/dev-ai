@@ -57,8 +57,8 @@ export default function Home() {
   useEffect(() => {
     if (selectedMessage !== null && messages[selectedMessage]) {
       setResult(messages[selectedMessage].response || '');
-      if (messages[selectedMessage].tab && typeof messages[selectedMessage].tab === 'string') {
-        setActiveTab(messages[selectedMessage].tab);
+      if (messages[selectedMessage].tab) {
+        setActiveTab(messages[selectedMessage].tab as string);
       }
     }
   }, [selectedMessage, messages]);
@@ -163,8 +163,8 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
   const handleContinueConversation = (idx: number) => {
     setSelectedMessage(idx);
     setCode(messages[idx].content);
-    if (messages[idx].tab && typeof messages[idx].tab === 'string') {
-      setActiveTab(messages[idx].tab);
+    if (messages[idx].tab) {
+      setActiveTab(messages[idx].tab as string);
     }
   };
 
