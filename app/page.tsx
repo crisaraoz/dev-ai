@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Code2, TestTube2, FileText, Sun, Moon, Download, Share2, History, Copy } from "lucide-react";
+import { Code2, TestTube2, FileText, Sun, Moon, Download, Share2, History, Copy, Edit, Send } from "lucide-react";
 import { useTheme } from "next-themes";
 import {
   Select,
@@ -201,6 +201,25 @@ const EXPLANATION_LEVELS = [
   }
 ];
 
+// Componente personalizado para SelectItem con descripción
+interface SelectItemWithDescriptionProps extends React.ComponentPropsWithoutRef<typeof SelectItem> {
+  description?: string;
+}
+
+const SelectItemWithDescription = React.forwardRef<HTMLDivElement, SelectItemWithDescriptionProps>(
+  ({ value, children, description, ...props }, ref) => {
+    return (
+      <SelectItem value={value as string} ref={ref} {...props}>
+        <div>
+          <div>{children}</div>
+          {description && <p className="text-sm text-muted-foreground">{description}</p>}
+        </div>
+      </SelectItem>
+    );
+  }
+);
+SelectItemWithDescription.displayName = 'SelectItemWithDescription';
+
 // Función para renderizar los resultados de código de manera consistente
 const renderCodeResult = (result: string, language: string) => {
   if (!result) return <div className="text-muted-foreground">{"// Result will appear here..."}</div>;
@@ -234,7 +253,9 @@ export default function Home() {
   const [explanationLevel, setExplanationLevel] = useState("mid");
   const [mounted, setMounted] = useState(false);
   const [activeTab, setActiveTab] = useState("refactor");
+  const [messages, setMessages] = useState<{type: 'user' | 'ai', content: string, response?: string, tab?: string}[]>([]);
   const { setTheme, theme } = useTheme();
+  const [selectedMessage, setSelectedMessage] = useState<number | null>(null);
 
   // Ejemplo de respuestas para mostrar en la UI
   const exampleTest = `Generated unit tests using Jest for javascript code:
@@ -273,12 +294,24 @@ describe('FormValidator', () => {
     setMounted(true);
   }, []);
 
+  // Efecto para actualizar el panel derecho cuando cambia el mensaje seleccionado
+  useEffect(() => {
+    if (selectedMessage !== null && messages[selectedMessage]) {
+      setResult(messages[selectedMessage].response || '');
+      if (messages[selectedMessage].tab) {
+        setActiveTab(messages[selectedMessage].tab);
+      }
+    }
+  }, [selectedMessage, messages]);
+
   // No renderizar contenido hasta que el componente esté montado
   if (!mounted) {
     return null;
   }
 
   const handleProcess = () => {
+    if (!code.trim()) return;
+    
     let message = "";
     
     if (activeTab === "test") {
@@ -289,10 +322,8 @@ describe('FormValidator', () => {
         message += `import { render, screen, fireEvent } from '@testing-library/react';\nimport '@testing-library/jest-dom';\nimport FormValidator from './FormValidator';\n\ndescribe('FormValidator', () => {\n  test('validates email format correctly', () => {\n    render(<FormValidator />);\n    const emailInput = screen.getByRole('textbox');\n    \n    // Invalid email\n    fireEvent.change(emailInput, { target: { value: 'invalid-email' } });\n    fireEvent.submit(screen.getByRole('form'));\n    expect(screen.getByText('El formato del email no es válido')).toBeInTheDocument();\n    \n    // Valid email\n    fireEvent.change(emailInput, { target: { value: 'test@example.com' } });\n    fireEvent.submit(screen.getByRole('form'));\n    expect(screen.queryByText('El formato del email no es válido')).not.toBeInTheDocument();\n  });\n\n  test('shows error when email field is empty', () => {\n    render(<FormValidator />);\n    \n    // Submit with empty field\n    fireEvent.submit(screen.getByRole('form'));\n    expect(screen.getByText('El campo no puede estar vacío')).toBeInTheDocument();\n  });\n});`;
       }
     } else if (activeTab === "explain") {
-      message = `Explaining code at ${explanationLevel} level for ${language}:\n\n`;
-      
-      // Example explanation response for FormValidator
-      message += `Este componente FormValidator implementa un validador de formularios en React utilizando hooks.
+      // Aseguramos un formato consistente para la explicación
+      const explanation = `Este componente FormValidator implementa un validador de formularios en React utilizando hooks.
 
 Puntos clave:
 
@@ -318,6 +349,9 @@ const validateEmail = (email) => {
 \`\`\`
 
 El componente muestra mensajes de error apropiados y proporciona feedback visual al usuario durante la validación del formulario.`;
+
+      // Usamos formato estándar para las explicaciones (encabezado + contenido)
+      message = `Explaining code at ${explanationLevel} level for ${language}:\n\n${explanation}`;
     } else {
       message = `Processed ${language} code:\n\n`;
       
@@ -341,8 +375,38 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
       }
     }
     
-    console.log("Procesando:", activeTab, message.substring(0, 50));
+    const newMessage = {
+      type: 'user' as const,
+      content: code,
+      response: message,
+      tab: activeTab
+    };
+    
+    // Añadir el mensaje del usuario y la respuesta al historial
+    setMessages(prev => [...prev, newMessage]);
+    
+    // Limpiar el campo de código para el siguiente mensaje
+    setCode("");
+    setSelectedMessage(null);
+    
+    // Establecer el resultado para mostrarlo
     setResult(message);
+    
+    // Scrollear hacia abajo al añadir un nuevo mensaje (mediante setTimeout para asegurar que el DOM se ha actualizado)
+    setTimeout(() => {
+      const chatContainer = document.querySelector('.messages-container');
+      if (chatContainer) {
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+      }
+    }, 100);
+  };
+
+  const handleContinueConversation = (idx: number) => {
+    setSelectedMessage(idx);
+    setCode(messages[idx].content);
+    if (messages[idx].tab) {
+      setActiveTab(messages[idx].tab);
+    }
   };
 
   const handleCopy = () => {
@@ -379,28 +443,141 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
       <main className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-4">
-            <div className="flex gap-4">
-              <Select value={language} onValueChange={setLanguage}>
-                <SelectTrigger className="w-[200px]">
-                  <SelectValue placeholder="Select Language" />
-                </SelectTrigger>
-                <SelectContent>
-                  {PROGRAMMING_LANGUAGES.map((lang) => (
-                    <SelectItem key={lang.value} value={lang.value}>
-                      {lang.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="flex flex-col md:flex-row gap-4 items-start">
+              <div className="w-full md:w-auto">
+                <Label htmlFor="language-select" className="block mb-2 text-sm">Programming Language</Label>
+                <Select value={language} onValueChange={setLanguage}>
+                  <SelectTrigger className="w-full md:w-[200px]" id="language-select">
+                    <SelectValue placeholder="Select Language" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {PROGRAMMING_LANGUAGES.map((lang) => (
+                      <SelectItem key={lang.value} value={lang.value}>
+                        {lang.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="w-full md:w-auto">
+                <Label className="block mb-2 text-sm">Experience Level</Label>
+                <Select value={explanationLevel} onValueChange={setExplanationLevel}>
+                  <SelectTrigger className="w-full md:w-[200px]">
+                    <SelectValue placeholder="Select Level" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {EXPLANATION_LEVELS.map((level) => (
+                      <SelectItemWithDescription key={level.value} value={level.value} description={level.description}>
+                        {level.label}
+                      </SelectItemWithDescription>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-            <Textarea
-              placeholder="Paste your code here..."
-              className="min-h-[400px] font-mono"
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-            />
-            <div className="flex justify-end">
-              <Button onClick={handleProcess}>Process</Button>
+            
+            {/* Historial de mensajes */}
+            {messages.length > 0 ? (
+              <ScrollArea className="h-[400px] border rounded-md p-4 bg-gray-50 dark:bg-gray-900 messages-container overflow-y-auto">
+                <div className="space-y-6">
+                  {messages.map((msg, idx) => (
+                    <div key={idx} className="space-y-4">
+                      {/* Mensaje del usuario */}
+                      <div className="flex items-start gap-3">
+                        <div className="bg-gray-200 dark:bg-gray-700 p-2 rounded-full flex-shrink-0">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4zm-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10c-2.29 0-3.516.68-4.168 1.332-.678.678-.83 1.418-.832 1.664h10z"/>
+                          </svg>
+                        </div>
+                        <div className="bg-gray-100 dark:bg-gray-800 px-4 py-3 rounded-lg w-full">
+                          <pre className="whitespace-pre-wrap font-mono text-sm overflow-auto max-h-[200px]">{msg.content}</pre>
+                          <div className="flex gap-2 mt-2 justify-end">
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={() => handleContinueConversation(idx)}
+                              className="h-7 px-2 text-xs"
+                            >
+                              <Edit className="h-3 w-3 mr-1" />
+                              Continuar
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Respuesta de la IA */}
+                      <div className="flex items-start gap-3">
+                        <div className="bg-blue-100 dark:bg-blue-900 p-2 rounded-full flex-shrink-0">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M6.5 13a6.474 6.474 0 0 0 3.845-1.258h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.008 1.008 0 0 0-.115-.1A6.471 6.471 0 0 0 13 6.5 6.502 6.502 0 0 0 6.5 0a6.5 6.5 0 1 0 0 13Zm0-8.518c1.664-1.673 5.825 1.254 0 5.018-5.825-3.764-1.664-6.69 0-5.018Z"/>
+                          </svg>
+                        </div>
+                        <div className="bg-blue-50 dark:bg-blue-900/20 px-4 py-3 rounded-lg w-full">
+                          {msg.tab === 'explain' ? (
+                            <ExplanationBlock>
+                              {msg.response?.includes('Explaining') 
+                                ? msg.response.split('Explaining')[1].split(':\n\n')[1] || ''
+                                : msg.response || ''
+                              }
+                            </ExplanationBlock>
+                          ) : (
+                            renderCodeResult(msg.response || '', language === "typescript" ? "typescript" : language)
+                          )}
+                          <div className="flex gap-2 mt-2">
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={() => navigator.clipboard.writeText(msg.response || '')}
+                              className="h-7 px-2 text-xs"
+                            >
+                              <Copy className="h-3 w-3 mr-1" />
+                              Copiar
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+            ) : (
+              <div className="h-[400px] flex items-center justify-center border rounded-md bg-gray-50 dark:bg-gray-900">
+                <div className="text-center p-4">
+                  <Code2 className="w-10 h-10 mx-auto mb-2 text-gray-400" />
+                  <h3 className="text-lg font-medium mb-1">Bienvenido a AI Dev Tools</h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Escribe tu código o pregunta para comenzar la conversación.
+                  </p>
+                </div>
+              </div>
+            )}
+            
+            {/* Campo de entrada */}
+            <div className="relative">
+              <Textarea
+                placeholder={selectedMessage !== null ? "Continuando con tu mensaje anterior..." : "Ingresa tu código o pregunta aquí..."}
+                className="min-h-[150px] font-mono pr-12"
+                value={code}
+                onChange={(e) => setCode(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && e.ctrlKey) {
+                    e.preventDefault();
+                    if (code.trim()) handleProcess();
+                  }
+                }}
+              />
+              <div className="absolute bottom-2 right-2 flex items-center gap-2">
+                <span className="text-xs text-gray-400">Ctrl+Enter</span>
+                <Button 
+                  size="sm" 
+                  onClick={handleProcess}
+                  disabled={!code.trim()}
+                >
+                  <Send className="h-4 w-4 mr-1" />
+                  Enviar
+                </Button>
+              </div>
             </div>
           </div>
 
@@ -468,27 +645,14 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
 
               <TabsContent value="explain">
                 <Card className="p-4">
-                  <div className="space-y-4 mb-4">
-                    <div>
-                      <Label>Experience Level</Label>
-                      <RadioGroup value={explanationLevel} onValueChange={setExplanationLevel} className="space-y-2 mt-2">
-                        {EXPLANATION_LEVELS.map((level) => (
-                          <div key={level.value} className="flex items-start space-x-2">
-                            <RadioGroupItem value={level.value} id={level.value} className="mt-1" />
-                            <div>
-                              <Label htmlFor={level.value} className="font-medium">{level.label}</Label>
-                              <p className="text-sm text-muted-foreground">{level.description}</p>
-                            </div>
-                          </div>
-                        ))}
-                      </RadioGroup>
-                    </div>
-                  </div>
-                  <ScrollArea className="h-[300px]">
+                  <ScrollArea className="h-[400px]">
                     {result ? (
                       <div className="chatgpt-message">
                         <ExplanationBlock>
-                          {result.split('\n\n').slice(1).join('\n\n')}
+                          {result.includes('Explaining') 
+                            ? result.split('Explaining')[1].split(':\n\n')[1] 
+                            : result
+                          }
                         </ExplanationBlock>
                       </div>
                     ) : (
