@@ -19,7 +19,7 @@ const InputArea: React.FC<InputAreaProps> = ({
   return (
     <div className="relative">
       <Textarea
-        placeholder={selectedMessage !== null ? "Continuando con tu mensaje anterior..." : "Ingresa tu código o pregunta aquí..."}
+        placeholder={selectedMessage !== null ? "Continuing with your previous message..." : "Enter your code or question here..."}
         className="min-h-[150px] font-mono pr-12"
         value={code}
         onChange={(e) => setCode(e.target.value)}

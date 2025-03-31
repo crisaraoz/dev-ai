@@ -4,19 +4,15 @@ interface ExplanationBlockProps {
   children: string;
 }
 
-// Componente para explicaciones con estilo idéntico a ChatGPT
 const ExplanationBlock = ({ children }: ExplanationBlockProps) => {
-  // Separar el contenido en secciones basadas en bloques de código y texto
   const processContent = () => {
     const parts = children.split(/```(\w*)\n([\s\S]*?)```/).filter(Boolean);
     const result = [];
     
     for (let i = 0; i < parts.length; i++) {
       if (i % 3 === 0) {
-        // Texto normal
         const paragraphs = parts[i].split('\n\n').filter(Boolean);
         paragraphs.forEach((paragraph, idx) => {
-          // Si es una sección principal
           if (paragraph.startsWith('Puntos') || paragraph.startsWith('Principal')) {
             result.push(
               <div key={`text-${i}-${idx}`} className="mt-5 mb-2">
@@ -26,7 +22,6 @@ const ExplanationBlock = ({ children }: ExplanationBlockProps) => {
               </div>
             );
           } 
-          // Si es un punto con numeración o viñeta
           else if (/^(\d+\.|✅)/.test(paragraph)) {
             result.push(
               <div key={`list-${i}-${idx}`} className="ml-2 flex items-start gap-2 mb-2">
@@ -48,7 +43,6 @@ const ExplanationBlock = ({ children }: ExplanationBlockProps) => {
               </div>
             );
           }
-          // Si es un título de sección (como "Ejemplo Comparativo")
           else if (paragraph.startsWith('Ejemplo')) {
             result.push(
               <div key={`title-${i}-${idx}`} className="mt-5 mb-2">
@@ -58,7 +52,6 @@ const ExplanationBlock = ({ children }: ExplanationBlockProps) => {
               </div>
             );
           }
-          // Si contiene "this" formateado
           else if (paragraph.includes('this')) {
             result.push(
               <p key={`this-${i}-${idx}`} className="text-gray-800 dark:text-gray-200 leading-relaxed mb-3">
@@ -68,7 +61,6 @@ const ExplanationBlock = ({ children }: ExplanationBlockProps) => {
               </p>
             );
           }
-          // Pregunta final
           else if (paragraph.includes('¿Quieres')) {
             result.push(
               <p key={`question-${i}-${idx}`} className="text-gray-800 dark:text-gray-200 leading-relaxed mt-4">
@@ -76,7 +68,6 @@ const ExplanationBlock = ({ children }: ExplanationBlockProps) => {
               </p>
             );
           }
-          // Párrafo normal
           else {
             result.push(
               <p key={`para-${i}-${idx}`} className="text-gray-800 dark:text-gray-200 leading-relaxed mb-3">
@@ -89,7 +80,6 @@ const ExplanationBlock = ({ children }: ExplanationBlockProps) => {
         // Lenguaje del bloque de código
         // No hacer nada, se usa en el siguiente paso
       } else {
-        // Contenido del bloque de código
         const language = parts[i-1] || 'js';
         const code = parts[i];
         result.push(

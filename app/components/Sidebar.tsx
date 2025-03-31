@@ -37,7 +37,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             onClick={startNewConversation}
           >
             <Plus className="h-4 w-4" />
-            Nueva conversación
+            New Conversation
           </Button>
 
           <div className="space-y-1 mt-4">
@@ -55,14 +55,14 @@ const Sidebar: React.FC<SidebarProps> = ({
         </div>
       </div>
 
-      {/* Botón flotante para mostrar/ocultar sidebar (estilo ChatGPT) */}
+      {/* Button for sidebar (as ChatGPT) */}
       <div className="fixed top-3 left-3 z-40">
         <Button
           variant="ghost"
           size="icon"
           onClick={toggleSidebar}
           className="rounded-sm bg-transparent dark:bg-transparent border-0 hover:bg-gray-100 dark:hover:bg-gray-800 p-0 w-8 h-8 flex items-center justify-center"
-          title={sidebarOpen ? "Ocultar conversaciones" : "Ver conversaciones"}
+          title={sidebarOpen ? "Hide chats" : "Show chats"}
         >
           <LayoutGrid className="h-5 w-5" />
         </Button>
