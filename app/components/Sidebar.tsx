@@ -1,6 +1,14 @@
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { LayoutGrid, Plus, MessageSquare } from "lucide-react";
+import { LayoutGrid, Plus, MessageSquare, Trash2 } from "lucide-react";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogDescription,
+  DialogFooter
+} from "@/components/ui/dialog";
 
 interface Conversation {
   id: string;
@@ -16,6 +24,7 @@ interface SidebarProps {
   activeConversation: string | null;
   startNewConversation: () => void;
   selectConversation: (id: string) => void;
+  deleteConversation: (id: string) => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
@@ -24,8 +33,28 @@ const Sidebar: React.FC<SidebarProps> = ({
   conversations,
   activeConversation,
   startNewConversation,
-  selectConversation
+  selectConversation,
+  deleteConversation
 }) => {
+  const [hoverConversation, setHoverConversation] = useState<string | null>(null);
+  const [hoverDelete, setHoverDelete] = useState<string | null>(null);
+  const [deleteDialog, setDeleteDialog] = useState<boolean>(false);
+  const [conversationToDelete, setConversationToDelete] = useState<string | null>(null);
+
+  const handleDeleteClick = (event: React.MouseEvent, id: string) => {
+    event.stopPropagation();
+    setConversationToDelete(id);
+    setDeleteDialog(true);
+  };
+
+  const confirmDelete = () => {
+    if (conversationToDelete) {
+      deleteConversation(conversationToDelete);
+    }
+    setDeleteDialog(false);
+    setConversationToDelete(null);
+  };
+
   return (
     <>
       {/* Sidebar */}
@@ -42,14 +71,39 @@ const Sidebar: React.FC<SidebarProps> = ({
 
           <div className="space-y-1 mt-4">
             {conversations.map((conv) => (
-              <button
+              <div 
                 key={conv.id}
-                className={`w-full text-left p-3 rounded-md flex items-center gap-2 transition-colors ${activeConversation === conv.id ? 'bg-gray-200 dark:bg-gray-800' : 'hover:bg-gray-100 dark:hover:bg-gray-800'}`}
-                onClick={() => selectConversation(conv.id)}
+                className="relative"
+                onMouseEnter={() => setHoverConversation(conv.id)}
+                onMouseLeave={() => setHoverConversation(null)}
               >
-                <MessageSquare className="h-4 w-4 flex-shrink-0" />
-                <div className="truncate">{conv.title}</div>
-              </button>
+                <button
+                  className={`w-full text-left p-3 rounded-md flex items-center gap-2 transition-colors ${activeConversation === conv.id ? 'bg-gray-200 dark:bg-gray-800' : 'hover:bg-gray-100 dark:hover:bg-gray-800'}`}
+                  onClick={() => selectConversation(conv.id)}
+                >
+                  <MessageSquare className="h-4 w-4 flex-shrink-0" />
+                  <div className="truncate">{conv.title}</div>
+                </button>
+                
+                {hoverConversation === conv.id && (
+                  <button
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1.5 rounded-md transition-colors"
+                    onMouseEnter={() => setHoverDelete(conv.id)}
+                    onMouseLeave={() => setHoverDelete(null)}
+                    onClick={(e) => handleDeleteClick(e, conv.id)}
+                    style={{
+                      backgroundColor: hoverDelete === conv.id ? 'rgba(220, 38, 38, 0.1)' : 'transparent'
+                    }}
+                  >
+                    <Trash2 
+                      className="h-4 w-4 flex-shrink-0" 
+                      style={{
+                        color: hoverDelete === conv.id ? 'rgb(220, 38, 38)' : 'currentColor'
+                      }}
+                    />
+                  </button>
+                )}
+              </div>
             ))}
           </div>
         </div>
@@ -75,6 +129,25 @@ const Sidebar: React.FC<SidebarProps> = ({
           onClick={toggleSidebar}
         ></div>
       )}
+
+      <Dialog open={deleteDialog} onOpenChange={setDeleteDialog}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Delete Conversation?</DialogTitle>
+            <DialogDescription>
+              This action cannot be undone. Are you sure you want to delete this conversation?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteDialog(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={confirmDelete}>
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };
