@@ -173,11 +173,54 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
   };
 
   const handleDownload = () => {
-    const blob = new Blob([result], { type: "text/plain" });
+    // Determinar la extensión del archivo según el lenguaje seleccionado
+    let fileExtension = ".txt";
+    switch (language) {
+      case "javascript":
+        fileExtension = ".js";
+        break;
+      case "typescript":
+        fileExtension = ".ts";
+        break;
+      case "python":
+        fileExtension = ".py";
+        break;
+      case "java":
+        fileExtension = ".java";
+        break;
+      case "csharp":
+        fileExtension = ".cs";
+        break;
+      case "cpp":
+        fileExtension = ".cpp";
+        break;
+      case "go":
+        fileExtension = ".go";
+        break;
+      case "rust":
+        fileExtension = ".rs";
+        break;
+      case "php":
+        fileExtension = ".php";
+        break;
+      case "ruby":
+        fileExtension = ".rb";
+        break;
+      default:
+        fileExtension = ".txt";
+    }
+
+    // Extraer solo el código si el resultado tiene formato específico
+    let codeToDownload = result;
+    if (result.includes('\n\n')) {
+      codeToDownload = result.split('\n\n')[1]; // Obtener solo la parte del código
+    }
+
+    const blob = new Blob([codeToDownload], { type: "text/plain" });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "result.txt";
+    a.download = `code${fileExtension}`;
     a.click();
   };
 
