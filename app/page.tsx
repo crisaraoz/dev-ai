@@ -11,6 +11,7 @@ import MessageHistory from "./components/MessageHistory";
 import InputArea from "./components/InputArea";
 import ResultsArea from "./components/ResultsArea";
 import LanguageSelector from "./components/LanguageSelector";
+import Footer from "./components/Footer";
 
 export default function Home() {
   const [code, setCode] = useState("");
@@ -26,6 +27,7 @@ export default function Home() {
   const [selectedMessage, setSelectedMessage] = useState<number | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [conversations, setConversations] = useState<{id: string, title: string, messages: any[], date: string}[]>([
     { 
       id: "1", 
@@ -71,18 +73,22 @@ export default function Home() {
   const handleProcess = () => {
     if (!code.trim()) return;
     
-    let message = "";
+    setIsLoading(true);
     
-    if (activeTab === "test") {
-      message = `Generated ${testType} tests using ${testFramework} for ${language} code:\n\n`;
+    // Simulamos el tiempo de respuesta de una API
+    setTimeout(() => {
+      let message = "";
       
-      // Example test response for FormValidator
-      if (language === "javascript" || language === "typescript") {
-        message += `import { render, screen, fireEvent } from '@testing-library/react';\nimport '@testing-library/jest-dom';\nimport FormValidator from './FormValidator';\n\ndescribe('FormValidator', () => {\n  test('validates email format correctly', () => {\n    render(<FormValidator />);\n    const emailInput = screen.getByRole('textbox');\n    \n    // Invalid email\n    fireEvent.change(emailInput, { target: { value: 'invalid-email' } });\n    fireEvent.submit(screen.getByRole('form'));\n    expect(screen.getByText('El formato del email no es válido')).toBeInTheDocument();\n    \n    // Valid email\n    fireEvent.change(emailInput, { target: { value: 'test@example.com' } });\n    fireEvent.submit(screen.getByRole('form'));\n    expect(screen.queryByText('El formato del email no es válido')).not.toBeInTheDocument();\n  });\n\n  test('shows error when email field is empty', () => {\n    render(<FormValidator />);\n    \n    // Submit with empty field\n    fireEvent.submit(screen.getByRole('form'));\n    expect(screen.getByText('El campo no puede estar vacío')).toBeInTheDocument();\n  });\n});`;
-      }
-    } else if (activeTab === "explain") {
-      // Aseguramos un formato consistente para la explicación
-      const explanation = `Este componente FormValidator implementa un validador de formularios en React utilizando hooks.
+      if (activeTab === "test") {
+        message = `Generated ${testType} tests using ${testFramework} for ${language} code:\n\n`;
+        
+        // Example test response for FormValidator
+        if (language === "javascript" || language === "typescript") {
+          message += `import { render, screen, fireEvent } from '@testing-library/react';\nimport '@testing-library/jest-dom';\nimport FormValidator from './FormValidator';\n\ndescribe('FormValidator', () => {\n  test('validates email format correctly', () => {\n    render(<FormValidator />);\n    const emailInput = screen.getByRole('textbox');\n    \n    // Invalid email\n    fireEvent.change(emailInput, { target: { value: 'invalid-email' } });\n    fireEvent.submit(screen.getByRole('form'));\n    expect(screen.getByText('El formato del email no es válido')).toBeInTheDocument();\n    \n    // Valid email\n    fireEvent.change(emailInput, { target: { value: 'test@example.com' } });\n    fireEvent.submit(screen.getByRole('form'));\n    expect(screen.queryByText('El formato del email no es válido')).not.toBeInTheDocument();\n  });\n\n  test('shows error when email field is empty', () => {\n    render(<FormValidator />);\n    \n    // Submit with empty field\n    fireEvent.submit(screen.getByRole('form'));\n    expect(screen.getByText('El campo no puede estar vacío')).toBeInTheDocument();\n  });\n});`;
+        }
+      } else if (activeTab === "explain") {
+        // Aseguramos un formato consistente para la explicación
+        const explanation = `Este componente FormValidator implementa un validador de formularios en React utilizando hooks.
 
 Puntos clave:
 
@@ -109,14 +115,14 @@ const validateEmail = (email) => {
 
 El componente muestra mensajes de error apropiados y proporciona feedback visual al usuario durante la validación del formulario.`;
 
-      // Usamos formato estándar para las explicaciones (encabezado + contenido)
-      message = `Explaining code at ${explanationLevel} level for ${language}:\n\n${explanation}`;
-    } else {
-      message = `Processed ${language} code:\n\n`;
-      
-      // Example refactored code for FormValidator
-      if (language === "javascript" || language === "typescript") {
-        message += `import { useState } from "react";\nimport styles from "../styles/FormValidator.module.scss";\n\nconst FormValidator = () => {\n  const [email, setEmail] = useState("");\n  const [error, setError] = useState("");\n  const [success, setSuccess] = useState(false);\n\n  const validateEmail = (email) => {\n    const emailRegex = /^[\\w-]+(\\.[\\w-]+)*@([\\w-]+\\.)+[a-zA-Z]{2,7}$/;\n    return emailRegex.test(email);\n  };\n\n  const handleSubmit = (e) => {\n    e.preventDefault();\n    setError("");\n    setSuccess(false);\n    \n    if (!email) {\n      setError("El campo no puede estar vacío.");\n      return;\n    }\n    \n    if (!validateEmail(email)) {\n      setError("El formato del email no es válido.");\n      return;\n    }\n    \n    // Si pasa todas las validaciones\n    setSuccess(true);\n    console.log("Email válido:", email);\n  };\n\n  return (\n    <div className={styles.formContainer}>\n      <form onSubmit={handleSubmit} role="form">\n        <div className={styles.inputGroup}>\n          <label htmlFor="email">Email:</label>\n          <input\
+        // Usamos formato estándar para las explicaciones (encabezado + contenido)
+        message = `Explaining code at ${explanationLevel} level for ${language}:\n\n${explanation}`;
+      } else {
+        message = `Processed ${language} code:\n\n`;
+        
+        // Example refactored code for FormValidator
+        if (language === "javascript" || language === "typescript") {
+          message += `import { useState } from "react";\nimport styles from "../styles/FormValidator.module.scss";\n\nconst FormValidator = () => {\n  const [email, setEmail] = useState("");\n  const [error, setError] = useState("");\n  const [success, setSuccess] = useState(false);\n\n  const validateEmail = (email) => {\n    const emailRegex = /^[\\w-]+(\\.[\\w-]+)*@([\\w-]+\\.)+[a-zA-Z]{2,7}$/;\n    return emailRegex.test(email);\n  };\n\n  const handleSubmit = (e) => {\n    e.preventDefault();\n    setError("");\n    setSuccess(false);\n    \n    if (!email) {\n      setError("El campo no puede estar vacío.");\n      return;\n    }\n    \n    if (!validateEmail(email)) {\n      setError("El formato del email no es válido.");\n      return;\n    }\n    \n    // Si pasa todas las validaciones\n    setSuccess(true);\n    console.log("Email válido:", email);\n  };\n\n  return (\n    <div className={styles.formContainer}>\n      <form onSubmit={handleSubmit} role="form">\n        <div className={styles.inputGroup}>\n          <label htmlFor="email">Email:</label>\n          <input\
             type="text"\
             id="email"\
             value={email}\
@@ -131,25 +137,27 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
     </div>\
   );\
 };\n\nexport default FormValidator;`;
+        }
       }
-    }
-    
-    const newMessage = {
-      type: 'user' as const,
-      content: code,
-      response: message,
-      tab: activeTab
-    };
-    setMessages(prev => [...prev, newMessage]);
-    setCode("");
-    setSelectedMessage(null);
-    setResult(message);
-    setTimeout(() => {
-      const chatContainer = document.querySelector('.messages-container');
-      if (chatContainer) {
-        chatContainer.scrollTop = chatContainer.scrollHeight;
-      }
-    }, 100);
+      
+      const newMessage = {
+        type: 'user' as const,
+        content: code,
+        response: message,
+        tab: activeTab
+      };
+      setMessages(prev => [...prev, newMessage]);
+      setCode("");
+      setSelectedMessage(null);
+      setResult(message);
+      setIsLoading(false);
+      setTimeout(() => {
+        const chatContainer = document.querySelector('.messages-container');
+        if (chatContainer) {
+          chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+      }, 100);
+    }, 1500); // Simulamos un tiempo de respuesta de 1.5 segundos
   };
 
   const handleContinueConversation = (idx: number) => {
@@ -203,8 +211,22 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
     setResult("");
   };
 
+  const deleteConversation = (id: string) => {
+    setConversations(prevConversations => prevConversations.filter(conv => conv.id !== id));
+    
+    // Si la conversación eliminada es la activa, seleccionar otra o crear una nueva
+    if (activeConversation === id) {
+      const remainingConversations = conversations.filter(conv => conv.id !== id);
+      if (remainingConversations.length > 0) {
+        selectConversation(remainingConversations[0].id);
+      } else {
+        startNewConversation();
+      }
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       {/* Sidebar Component */}
       <Sidebar 
         sidebarOpen={sidebarOpen}
@@ -213,13 +235,14 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
         activeConversation={activeConversation}
         startNewConversation={startNewConversation}
         selectConversation={selectConversation}
+        deleteConversation={deleteConversation}
       />
 
-      <div className={`transition-all duration-300 ${sidebarOpen ? 'md:ml-64' : 'ml-0'}`}>
+      <div className={`transition-all duration-300 flex flex-col flex-grow ${sidebarOpen ? 'md:ml-64' : 'ml-0'}`}>
         {/* Header Component */}
         <Header theme={theme} setTheme={setTheme} />
 
-        <main className="container mx-auto px-4 py-8">
+        <main className="container mx-auto px-4 py-8 flex-grow">
           <div className={`grid ${isFullscreen ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2'} gap-6 relative`}>
             <div className={`space-y-4 ${isFullscreen ? 'hidden' : ''}`}>
               {/* Language Selector Component */}
@@ -243,6 +266,7 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
                 setCode={setCode}
                 handleProcess={handleProcess}
                 selectedMessage={selectedMessage}
+                isLoading={isLoading}
               />
             </div>
 
@@ -261,10 +285,14 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
                 toggleFullscreen={toggleFullscreen}
                 handleCopy={handleCopy}
                 handleDownload={handleDownload}
+                isLoading={isLoading}
               />
             </div>
           </div>
         </main>
+        
+        {/* Footer Component */}
+        <Footer />
       </div>
     </div>
   );
