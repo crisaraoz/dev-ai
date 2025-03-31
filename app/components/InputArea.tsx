@@ -38,7 +38,7 @@ const InputArea: React.FC<InputAreaProps> = ({
           disabled={!code.trim()}
         >
           <Send className="h-4 w-4 mr-1" />
-          Enviar
+          Send
         </Button>
       </div>
     </div>
