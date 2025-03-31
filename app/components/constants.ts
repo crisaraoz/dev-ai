@@ -1,14 +1,14 @@
 export const PROGRAMMING_LANGUAGES = [
-  { value: "javascript", label: "JavaScript" },
-  { value: "typescript", label: "TypeScript" },
-  { value: "python", label: "Python" },
-  { value: "java", label: "Java" },
-  { value: "csharp", label: "C#" },
-  { value: "cpp", label: "C++" },
-  { value: "go", label: "Go" },
-  { value: "rust", label: "Rust" },
-  { value: "php", label: "PHP" },
-  { value: "ruby", label: "Ruby" },
+  { value: "javascript", label: "JavaScript", icon: "/icons/languages/javascript.svg" },
+  { value: "typescript", label: "TypeScript", icon: "/icons/languages/typescript.svg" },
+  { value: "python", label: "Python", icon: "/icons/languages/python.svg" },
+  { value: "java", label: "Java", icon: "/icons/languages/java.svg" },
+  { value: "csharp", label: "C#", icon: "/icons/languages/csharp.svg" },
+  { value: "cpp", label: "C++", icon: "/icons/languages/cpp.svg" },
+  { value: "go", label: "Go", icon: "/icons/languages/go.svg" },
+  { value: "rust", label: "Rust", icon: "/icons/languages/rust.svg" },
+  { value: "php", label: "PHP", icon: "/icons/languages/php.svg" },
+  { value: "ruby", label: "Ruby", icon: "/icons/languages/ruby.svg" },
 ];
 
 export const TEST_FRAMEWORKS = {

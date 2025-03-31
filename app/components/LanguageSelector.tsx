@@ -3,6 +3,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PROGRAMMING_LANGUAGES, EXPLANATION_LEVELS } from "./constants";
 import SelectItemWithDescription from "./SelectItemWithDescription";
+import SelectItemWithIcon from "./SelectItemWithIcon";
 
 interface LanguageSelectorProps {
   language: string;
@@ -27,9 +28,9 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({
           </SelectTrigger>
           <SelectContent>
             {PROGRAMMING_LANGUAGES.map((lang) => (
-              <SelectItem key={lang.value} value={lang.value}>
+              <SelectItemWithIcon key={lang.value} value={lang.value} icon={lang.icon}>
                 {lang.label}
-              </SelectItem>
+              </SelectItemWithIcon>
             ))}
           </SelectContent>
         </Select>
