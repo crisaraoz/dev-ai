@@ -1,6 +1,5 @@
 import React from "react";
 
-// Función para renderizar los resultados de código de manera consistente
 export const renderCodeResult = (result: string, language: string) => {
   if (!result) return <div className="text-muted-foreground">{"// Result will appear here..."}</div>;
   

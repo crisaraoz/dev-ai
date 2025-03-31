@@ -110,7 +110,7 @@ const ResultsArea: React.FC<ResultsAreaProps> = ({
               </div>
               <ScrollArea className={`${isFullscreen ? 'h-[65vh]' : 'h-[300px]'}`}>
                 {result ? renderCodeResult(result, language === "typescript" ? "typescript" : language)
-                  : <div className="text-muted-foreground">{"// Los tests aparecerán aquí después de procesar el código..."}</div>
+                  : <div className="text-muted-foreground">{"// The tests will appear here after processing the code..."}</div>
                 }
               </ScrollArea>
             </Card>
@@ -129,7 +129,7 @@ const ResultsArea: React.FC<ResultsAreaProps> = ({
                     </ExplanationBlock>
                   </div>
                 ) : (
-                  <div className="text-muted-foreground">{"// La explicación aparecerá aquí después de procesar el código..."}</div>
+                  <div className="text-muted-foreground">{"// The explanation will appear here after processing the code..."}</div>
                 )}
               </ScrollArea>
             </Card>

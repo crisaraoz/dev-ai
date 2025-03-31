@@ -30,9 +30,9 @@ const MessageHistory: React.FC<MessageHistoryProps> = ({
           <svg xmlns="http://www.w3.org/2000/svg" className="w-10 h-10 mx-auto mb-2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
           </svg>
-          <h3 className="text-lg font-medium mb-1">Bienvenido a AI Dev Tools</h3>
+          <h3 className="text-lg font-medium mb-1">Welcome to AI Dev Tools</h3>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Escribe tu código o pregunta para comenzar la conversación.
+            Write your code or question to start the conversation.
           </p>
         </div>
       </div>

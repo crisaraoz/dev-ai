@@ -140,18 +140,10 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
       response: message,
       tab: activeTab
     };
-    
-    // Añadir el mensaje del usuario y la respuesta al historial
     setMessages(prev => [...prev, newMessage]);
-    
-    // Limpiar el campo de código para el siguiente mensaje
     setCode("");
     setSelectedMessage(null);
-    
-    // Establecer el resultado para mostrarlo
     setResult(message);
-    
-    // Scrollear hacia abajo al añadir un nuevo mensaje (mediante setTimeout para asegurar que el DOM se ha actualizado)
     setTimeout(() => {
       const chatContainer = document.querySelector('.messages-container');
       if (chatContainer) {
@@ -193,9 +185,9 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
     const newId = Date.now().toString();
     const newConversation = {
       id: newId,
-      title: "Nueva conversación",
+      title: "New conversation",
       messages: [],
-      date: "Hoy"
+      date: "Today"
     };
     
     setConversations([newConversation, ...conversations]);
@@ -207,8 +199,6 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
 
   const selectConversation = (id: string) => {
     setActiveConversation(id);
-    // Aquí cargaríamos los mensajes de la conversación seleccionada
-    // Por ahora, solo simulamos este comportamiento
     setMessages([]);
     setResult("");
   };
@@ -225,7 +215,6 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
         selectConversation={selectConversation}
       />
 
-      {/* Contenido principal con margen cuando el sidebar está abierto */}
       <div className={`transition-all duration-300 ${sidebarOpen ? 'md:ml-64' : 'ml-0'}`}>
         {/* Header Component */}
         <Header theme={theme} setTheme={setTheme} />
