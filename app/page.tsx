@@ -1,66 +1,16 @@
 "use client";
 
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Code2, TestTube2, FileText, Sun, Moon, Download, Share2, History, Copy } from "lucide-react";
+import React, { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
+import { Code2 } from "lucide-react";
 
-const PROGRAMMING_LANGUAGES = [
-  { value: "javascript", label: "JavaScript" },
-  { value: "typescript", label: "TypeScript" },
-  { value: "python", label: "Python" },
-  { value: "java", label: "Java" },
-  { value: "csharp", label: "C#" },
-  { value: "cpp", label: "C++" },
-  { value: "go", label: "Go" },
-  { value: "rust", label: "Rust" },
-  { value: "php", label: "PHP" },
-  { value: "ruby", label: "Ruby" },
-];
-
-const TEST_FRAMEWORKS = {
-  javascript: ["Jest", "Mocha", "Jasmine"],
-  typescript: ["Jest", "Vitest", "AVA"],
-  python: ["Pytest", "Unittest", "Nose"],
-  java: ["JUnit", "TestNG", "Mockito"],
-  csharp: ["NUnit", "xUnit", "MSTest"],
-  cpp: ["Google Test", "Catch2", "Boost.Test"],
-  go: ["Go Test", "Testify", "GoCheck"],
-  rust: ["Built-in Tests", "Tokio Test", "Proptest"],
-  php: ["PHPUnit", "Codeception", "Pest"],
-  ruby: ["RSpec", "Minitest", "Test::Unit"],
-};
-
-const EXPLANATION_LEVELS = [
-  {
-    value: "junior",
-    label: "Junior Developer",
-    description: "Detailed explanations with basic concepts and examples"
-  },
-  {
-    value: "mid",
-    label: "Mid-Level Developer",
-    description: "Balanced explanations focusing on implementation details and best practices"
-  },
-  {
-    value: "senior",
-    label: "Senior Developer",
-    description: "Advanced concepts, architecture patterns, and performance considerations"
-  }
-];
+// Importación de componentes
+import Sidebar from "./components/Sidebar";
+import Header from "./components/Header";
+import MessageHistory from "./components/MessageHistory";
+import InputArea from "./components/InputArea";
+import ResultsArea from "./components/ResultsArea";
+import LanguageSelector from "./components/LanguageSelector";
 
 export default function Home() {
   const [code, setCode] = useState("");
@@ -69,21 +19,153 @@ export default function Home() {
   const [testFramework, setTestFramework] = useState("Jest");
   const [testType, setTestType] = useState("unit");
   const [explanationLevel, setExplanationLevel] = useState("mid");
+  const [mounted, setMounted] = useState(false);
+  const [activeTab, setActiveTab] = useState("refactor");
+  const [messages, setMessages] = useState<{type: 'user' | 'ai', content: string, response?: string, tab?: string}[]>([]);
   const { setTheme, theme } = useTheme();
+  const [selectedMessage, setSelectedMessage] = useState<number | null>(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [conversations, setConversations] = useState<{id: string, title: string, messages: any[], date: string}[]>([
+    { 
+      id: "1", 
+      title: "Funciones flecha en JavaScript", 
+      messages: [], 
+      date: "Hoy" 
+    },
+    { 
+      id: "2", 
+      title: "Validación de formularios", 
+      messages: [], 
+      date: "Ayer" 
+    },
+    { 
+      id: "3", 
+      title: "Async/Await en React", 
+      messages: [], 
+      date: "7 días anteriores" 
+    }
+  ]);
+  const [activeConversation, setActiveConversation] = useState<string | null>("1");
+
+  // Asegurarse de que la UI se renderiza correctamente después de cargar
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Efecto para actualizar el panel derecho cuando cambia el mensaje seleccionado
+  useEffect(() => {
+    if (selectedMessage !== null && messages[selectedMessage]) {
+      setResult(messages[selectedMessage].response || '');
+      if (messages[selectedMessage].tab) {
+        setActiveTab(messages[selectedMessage].tab);
+      }
+    }
+  }, [selectedMessage, messages]);
+
+  // No renderizar contenido hasta que el componente esté montado
+  if (!mounted) {
+    return null;
+  }
 
   const handleProcess = () => {
-    const processType = document.querySelector('[role="tablist"]')?.querySelector('[data-state="active"]')?.getAttribute('data-value');
+    if (!code.trim()) return;
+    
     let message = "";
     
-    if (processType === "test") {
+    if (activeTab === "test") {
       message = `Generated ${testType} tests using ${testFramework} for ${language} code:\n\n`;
-    } else if (processType === "explain") {
-      message = `Explaining code at ${explanationLevel} level for ${language}:\n\n`;
+      
+      // Example test response for FormValidator
+      if (language === "javascript" || language === "typescript") {
+        message += `import { render, screen, fireEvent } from '@testing-library/react';\nimport '@testing-library/jest-dom';\nimport FormValidator from './FormValidator';\n\ndescribe('FormValidator', () => {\n  test('validates email format correctly', () => {\n    render(<FormValidator />);\n    const emailInput = screen.getByRole('textbox');\n    \n    // Invalid email\n    fireEvent.change(emailInput, { target: { value: 'invalid-email' } });\n    fireEvent.submit(screen.getByRole('form'));\n    expect(screen.getByText('El formato del email no es válido')).toBeInTheDocument();\n    \n    // Valid email\n    fireEvent.change(emailInput, { target: { value: 'test@example.com' } });\n    fireEvent.submit(screen.getByRole('form'));\n    expect(screen.queryByText('El formato del email no es válido')).not.toBeInTheDocument();\n  });\n\n  test('shows error when email field is empty', () => {\n    render(<FormValidator />);\n    \n    // Submit with empty field\n    fireEvent.submit(screen.getByRole('form'));\n    expect(screen.getByText('El campo no puede estar vacío')).toBeInTheDocument();\n  });\n});`;
+      }
+    } else if (activeTab === "explain") {
+      // Aseguramos un formato consistente para la explicación
+      const explanation = `Este componente FormValidator implementa un validador de formularios en React utilizando hooks.
+
+Puntos clave:
+
+✅ useState: Administra el estado del email y los mensajes de error
+✅ validateEmail: Utiliza una expresión regular para verificar el formato del email
+✅ handleSubmit: Maneja el envío del formulario, previniendo el comportamiento predeterminado
+✅ Validación: Comprueba si el campo está vacío o si el email tiene un formato incorrecto
+
+Ejemplo Comparativo
+
+\`\`\`js
+// Función tradicional de validación
+function validateEmail(email) {
+  const regex = /^[\\w-]+(\\.[\\w-]+)*@([\\w-]+\\.)+[a-zA-Z]{2,7}$/;
+  return regex.test(email);
+}
+
+// Función flecha equivalente
+const validateEmail = (email) => {
+  const regex = /^[\\w-]+(\\.[\\w-]+)*@([\\w-]+\\.)+[a-zA-Z]{2,7}$/;
+  return regex.test(email);
+};
+\`\`\`
+
+El componente muestra mensajes de error apropiados y proporciona feedback visual al usuario durante la validación del formulario.`;
+
+      // Usamos formato estándar para las explicaciones (encabezado + contenido)
+      message = `Explaining code at ${explanationLevel} level for ${language}:\n\n${explanation}`;
     } else {
       message = `Processed ${language} code:\n\n`;
+      
+      // Example refactored code for FormValidator
+      if (language === "javascript" || language === "typescript") {
+        message += `import { useState } from "react";\nimport styles from "../styles/FormValidator.module.scss";\n\nconst FormValidator = () => {\n  const [email, setEmail] = useState("");\n  const [error, setError] = useState("");\n  const [success, setSuccess] = useState(false);\n\n  const validateEmail = (email) => {\n    const emailRegex = /^[\\w-]+(\\.[\\w-]+)*@([\\w-]+\\.)+[a-zA-Z]{2,7}$/;\n    return emailRegex.test(email);\n  };\n\n  const handleSubmit = (e) => {\n    e.preventDefault();\n    setError("");\n    setSuccess(false);\n    \n    if (!email) {\n      setError("El campo no puede estar vacío.");\n      return;\n    }\n    \n    if (!validateEmail(email)) {\n      setError("El formato del email no es válido.");\n      return;\n    }\n    \n    // Si pasa todas las validaciones\n    setSuccess(true);\n    console.log("Email válido:", email);\n  };\n\n  return (\n    <div className={styles.formContainer}>\n      <form onSubmit={handleSubmit} role="form">\n        <div className={styles.inputGroup}>\n          <label htmlFor="email">Email:</label>\n          <input\
+            type="text"\
+            id="email"\
+            value={email}\
+            onChange={(e) => setEmail(e.target.value)}\
+            className={error ? styles.inputError : ""}\
+          />\
+          {error && <p className={styles.errorMessage}>{error}</p>}\
+          {success && <p className={styles.successMessage}>¡Email validado correctamente!</p>}\
+        </div>\
+        <button type="submit" className={styles.submitButton}>Validar</button>\
+      </form>\
+    </div>\
+  );\
+};\n\nexport default FormValidator;`;
+      }
     }
     
-    setResult(message + "// Result will appear here...");
+    const newMessage = {
+      type: 'user' as const,
+      content: code,
+      response: message,
+      tab: activeTab
+    };
+    
+    // Añadir el mensaje del usuario y la respuesta al historial
+    setMessages(prev => [...prev, newMessage]);
+    
+    // Limpiar el campo de código para el siguiente mensaje
+    setCode("");
+    setSelectedMessage(null);
+    
+    // Establecer el resultado para mostrarlo
+    setResult(message);
+    
+    // Scrollear hacia abajo al añadir un nuevo mensaje (mediante setTimeout para asegurar que el DOM se ha actualizado)
+    setTimeout(() => {
+      const chatContainer = document.querySelector('.messages-container');
+      if (chatContainer) {
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+      }
+    }, 100);
+  };
+
+  const handleContinueConversation = (idx: number) => {
+    setSelectedMessage(idx);
+    setCode(messages[idx].content);
+    if (messages[idx].tab) {
+      setActiveTab(messages[idx].tab);
+    }
   };
 
   const handleCopy = () => {
@@ -99,152 +181,102 @@ export default function Home() {
     a.click();
   };
 
+  const toggleFullscreen = () => {
+    setIsFullscreen(!isFullscreen);
+  };
+
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen);
+  };
+
+  const startNewConversation = () => {
+    const newId = Date.now().toString();
+    const newConversation = {
+      id: newId,
+      title: "Nueva conversación",
+      messages: [],
+      date: "Hoy"
+    };
+    
+    setConversations([newConversation, ...conversations]);
+    setActiveConversation(newId);
+    setMessages([]);
+    setCode("");
+    setResult("");
+  };
+
+  const selectConversation = (id: string) => {
+    setActiveConversation(id);
+    // Aquí cargaríamos los mensajes de la conversación seleccionada
+    // Por ahora, solo simulamos este comportamiento
+    setMessages([]);
+    setResult("");
+  };
+
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <Code2 className="h-6 w-6" />
-            AI Dev Tools
-          </h1>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-          >
-            {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-          </Button>
-        </div>
-      </header>
+      {/* Sidebar Component */}
+      <Sidebar 
+        sidebarOpen={sidebarOpen}
+        toggleSidebar={toggleSidebar}
+        conversations={conversations}
+        activeConversation={activeConversation}
+        startNewConversation={startNewConversation}
+        selectConversation={selectConversation}
+      />
 
-      <main className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-4">
-            <div className="flex gap-4">
-              <Select value={language} onValueChange={setLanguage}>
-                <SelectTrigger className="w-[200px]">
-                  <SelectValue placeholder="Select Language" />
-                </SelectTrigger>
-                <SelectContent>
-                  {PROGRAMMING_LANGUAGES.map((lang) => (
-                    <SelectItem key={lang.value} value={lang.value}>
-                      {lang.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+      {/* Contenido principal con margen cuando el sidebar está abierto */}
+      <div className={`transition-all duration-300 ${sidebarOpen ? 'md:ml-64' : 'ml-0'}`}>
+        {/* Header Component */}
+        <Header theme={theme} setTheme={setTheme} />
+
+        <main className="container mx-auto px-4 py-8">
+          <div className={`grid ${isFullscreen ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2'} gap-6 relative`}>
+            <div className={`space-y-4 ${isFullscreen ? 'hidden' : ''}`}>
+              {/* Language Selector Component */}
+              <LanguageSelector 
+                language={language}
+                setLanguage={setLanguage}
+                explanationLevel={explanationLevel}
+                setExplanationLevel={setExplanationLevel}
+              />
+              
+              {/* Message History Component */}
+              <MessageHistory 
+                messages={messages}
+                language={language}
+                handleContinueConversation={handleContinueConversation}
+              />
+              
+              {/* Input Area Component */}
+              <InputArea 
+                code={code}
+                setCode={setCode}
+                handleProcess={handleProcess}
+                selectedMessage={selectedMessage}
+              />
             </div>
-            <Textarea
-              placeholder="Paste your code here..."
-              className="min-h-[400px] font-mono"
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-            />
-            <div className="flex justify-end">
-              <Button onClick={handleProcess}>Process</Button>
-            </div>
-          </div>
 
-          <div className="space-y-4">
-            <Tabs defaultValue="refactor">
-              <TabsList className="grid grid-cols-3 w-full">
-                <TabsTrigger value="refactor">Refactor</TabsTrigger>
-                <TabsTrigger value="test">Generate Tests</TabsTrigger>
-                <TabsTrigger value="explain">Explain</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="refactor">
-                <Card className="p-4">
-                  <ScrollArea className="h-[400px]">
-                    <pre className="font-mono whitespace-pre-wrap">{result}</pre>
-                  </ScrollArea>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="test">
-                <Card className="p-4">
-                  <div className="space-y-4 mb-4">
-                    <div>
-                      <Label>Test Framework</Label>
-                      <Select value={testFramework} onValueChange={setTestFramework}>
-                        <SelectTrigger className="w-[200px]">
-                          <SelectValue placeholder="Select Framework" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {TEST_FRAMEWORKS[language as keyof typeof TEST_FRAMEWORKS].map((framework) => (
-                            <SelectItem key={framework} value={framework}>
-                              {framework}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label>Test Type</Label>
-                      <RadioGroup value={testType} onValueChange={setTestType} className="flex gap-4">
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="unit" id="unit" />
-                          <Label htmlFor="unit">Unit Tests</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="integration" id="integration" />
-                          <Label htmlFor="integration">Integration Tests</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="e2e" id="e2e" />
-                          <Label htmlFor="e2e">E2E Tests</Label>
-                        </div>
-                      </RadioGroup>
-                    </div>
-                  </div>
-                  <ScrollArea className="h-[300px]">
-                    <pre className="font-mono whitespace-pre-wrap">{result}</pre>
-                  </ScrollArea>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="explain">
-                <Card className="p-4">
-                  <div className="space-y-4 mb-4">
-                    <div>
-                      <Label>Experience Level</Label>
-                      <RadioGroup value={explanationLevel} onValueChange={setExplanationLevel} className="space-y-2 mt-2">
-                        {EXPLANATION_LEVELS.map((level) => (
-                          <div key={level.value} className="flex items-start space-x-2">
-                            <RadioGroupItem value={level.value} id={level.value} className="mt-1" />
-                            <div>
-                              <Label htmlFor={level.value} className="font-medium">{level.label}</Label>
-                              <p className="text-sm text-muted-foreground">{level.description}</p>
-                            </div>
-                          </div>
-                        ))}
-                      </RadioGroup>
-                    </div>
-                  </div>
-                  <ScrollArea className="h-[300px]">
-                    <pre className="font-mono whitespace-pre-wrap">{result}</pre>
-                  </ScrollArea>
-                </Card>
-              </TabsContent>
-            </Tabs>
-
-            <div className="flex gap-2 justify-end">
-              <Button variant="outline" size="icon" onClick={handleCopy}>
-                <Copy className="h-4 w-4" />
-              </Button>
-              <Button variant="outline" size="icon" onClick={handleDownload}>
-                <Download className="h-4 w-4" />
-              </Button>
-              <Button variant="outline" size="icon">
-                <Share2 className="h-4 w-4" />
-              </Button>
-              <Button variant="outline" size="icon">
-                <History className="h-4 w-4" />
-              </Button>
+            {/* Results Area Component */}
+            <div className={`${isFullscreen ? 'w-full' : ''}`}>
+              <ResultsArea 
+                activeTab={activeTab}
+                setActiveTab={setActiveTab}
+                result={result}
+                language={language}
+                testFramework={testFramework}
+                setTestFramework={setTestFramework}
+                testType={testType}
+                setTestType={setTestType}
+                isFullscreen={isFullscreen}
+                toggleFullscreen={toggleFullscreen}
+                handleCopy={handleCopy}
+                handleDownload={handleDownload}
+              />
             </div>
           </div>
-        </div>
-      </main>
+        </main>
+      </div>
     </div>
   );
-}
+} 
