@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Code2, TestTube2, FileText, Sun, Moon, Download, Share2, History, Copy, Edit, Send, Maximize2, Minimize2 } from "lucide-react";
+import { Code2, TestTube2, FileText, Sun, Moon, Download, Share2, History, Copy, Edit, Send, Maximize2, Minimize2, Menu, LayoutGrid, Plus, MessageSquare } from "lucide-react";
 import { useTheme } from "next-themes";
 import {
   Select,
@@ -257,6 +257,28 @@ export default function Home() {
   const { setTheme, theme } = useTheme();
   const [selectedMessage, setSelectedMessage] = useState<number | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [conversations, setConversations] = useState<{id: string, title: string, messages: any[], date: string}[]>([
+    { 
+      id: "1", 
+      title: "Funciones flecha en JavaScript", 
+      messages: [], 
+      date: "Hoy" 
+    },
+    { 
+      id: "2", 
+      title: "Validación de formularios", 
+      messages: [], 
+      date: "Ayer" 
+    },
+    { 
+      id: "3", 
+      title: "Async/Await en React", 
+      messages: [], 
+      date: "7 días anteriores" 
+    }
+  ]);
+  const [activeConversation, setActiveConversation] = useState<string | null>("1");
 
   // Ejemplo de respuestas para mostrar en la UI
   const exampleTest = `Generated unit tests using Jest for javascript code:
@@ -427,278 +449,357 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
     setIsFullscreen(!isFullscreen);
   };
 
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen);
+  };
+
+  const startNewConversation = () => {
+    const newId = Date.now().toString();
+    const newConversation = {
+      id: newId,
+      title: "Nueva conversación",
+      messages: [],
+      date: "Hoy"
+    };
+    
+    setConversations([newConversation, ...conversations]);
+    setActiveConversation(newId);
+    setMessages([]);
+    setCode("");
+    setResult("");
+  };
+
+  const selectConversation = (id: string) => {
+    setActiveConversation(id);
+    // Aquí cargaríamos los mensajes de la conversación seleccionada
+    // Por ahora, solo simulamos este comportamiento
+    setMessages([]);
+    setResult("");
+  };
+
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <Code2 className="h-6 w-6" />
-            AI Dev Tools
-          </h1>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+      {/* Sidebar */}
+      <div className={`fixed inset-y-0 left-0 bg-gray-50 dark:bg-gray-900 w-64 shadow-lg transform transition-transform duration-300 ease-in-out z-30 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        <div className="p-3 pt-12">
+          <Button 
+            variant="outline" 
+            className="w-full mb-4 text-left flex items-center gap-2 justify-start rounded-md" 
+            onClick={startNewConversation}
           >
-            {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+            <Plus className="h-4 w-4" />
+            Nueva conversación
           </Button>
-        </div>
-      </header>
 
-      <main className="container mx-auto px-4 py-8">
-        <div className={`grid ${isFullscreen ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2'} gap-6 relative`}>
-          <div className={`space-y-4 ${isFullscreen ? 'hidden' : ''}`}>
-            <div className="flex flex-col md:flex-row gap-4 items-start">
-              <div className="w-full md:w-auto">
-                <Label htmlFor="language-select" className="block mb-2 text-sm">Programming Language</Label>
-                <Select value={language} onValueChange={setLanguage}>
-                  <SelectTrigger className="w-full md:w-[200px]" id="language-select">
-                    <SelectValue placeholder="Select Language" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {PROGRAMMING_LANGUAGES.map((lang) => (
-                      <SelectItem key={lang.value} value={lang.value}>
-                        {lang.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+          <div className="space-y-1 mt-4">
+            {conversations.map((conv) => (
+              <button
+                key={conv.id}
+                className={`w-full text-left p-3 rounded-md flex items-center gap-2 transition-colors ${activeConversation === conv.id ? 'bg-gray-200 dark:bg-gray-800' : 'hover:bg-gray-100 dark:hover:bg-gray-800'}`}
+                onClick={() => selectConversation(conv.id)}
+              >
+                <MessageSquare className="h-4 w-4 flex-shrink-0" />
+                <div className="truncate">{conv.title}</div>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Botón flotante para mostrar/ocultar sidebar (estilo ChatGPT) */}
+      <div className="fixed top-3 left-3 z-40">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={toggleSidebar}
+          className="rounded-sm bg-transparent dark:bg-transparent border-0 hover:bg-gray-100 dark:hover:bg-gray-800 p-0 w-8 h-8 flex items-center justify-center"
+          title={sidebarOpen ? "Ocultar conversaciones" : "Ver conversaciones"}
+        >
+          <LayoutGrid className="h-5 w-5" />
+        </Button>
+      </div>
+
+      {/* Overlay para cerrar sidebar en móviles */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-30 z-20 md:hidden"
+          onClick={toggleSidebar}
+        ></div>
+      )}
+
+      {/* Contenido principal con margen cuando el sidebar está abierto */}
+      <div className={`transition-all duration-300 ${sidebarOpen ? 'md:ml-64' : 'ml-0'}`}>
+        <header className="border-b relative z-10">
+          <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+            <h1 className="text-2xl font-bold flex items-center gap-2 ml-8 md:ml-0">
+              <Code2 className="h-6 w-6" />
+              AI Dev Tools
+            </h1>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            >
+              {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+            </Button>
+          </div>
+        </header>
+
+        <main className="container mx-auto px-4 py-8">
+          <div className={`grid ${isFullscreen ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2'} gap-6 relative`}>
+            <div className={`space-y-4 ${isFullscreen ? 'hidden' : ''}`}>
+              <div className="flex flex-col md:flex-row gap-4 items-start">
+                <div className="w-full md:w-auto">
+                  <Label htmlFor="language-select" className="block mb-2 text-sm">Programming Language</Label>
+                  <Select value={language} onValueChange={setLanguage}>
+                    <SelectTrigger className="w-full md:w-[200px]" id="language-select">
+                      <SelectValue placeholder="Select Language" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {PROGRAMMING_LANGUAGES.map((lang) => (
+                        <SelectItem key={lang.value} value={lang.value}>
+                          {lang.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="w-full md:w-auto">
+                  <Label className="block mb-2 text-sm">Experience Level</Label>
+                  <Select value={explanationLevel} onValueChange={setExplanationLevel}>
+                    <SelectTrigger className="w-full md:w-[200px]">
+                      <SelectValue placeholder="Select Level" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {EXPLANATION_LEVELS.map((level) => (
+                        <SelectItemWithDescription key={level.value} value={level.value} description={level.description}>
+                          {level.label}
+                        </SelectItemWithDescription>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
               
-              <div className="w-full md:w-auto">
-                <Label className="block mb-2 text-sm">Experience Level</Label>
-                <Select value={explanationLevel} onValueChange={setExplanationLevel}>
-                  <SelectTrigger className="w-full md:w-[200px]">
-                    <SelectValue placeholder="Select Level" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {EXPLANATION_LEVELS.map((level) => (
-                      <SelectItemWithDescription key={level.value} value={level.value} description={level.description}>
-                        {level.label}
-                      </SelectItemWithDescription>
+              {/* Historial de mensajes */}
+              {messages.length > 0 ? (
+                <ScrollArea className="h-[400px] border rounded-md p-4 bg-gray-50 dark:bg-gray-900 messages-container overflow-y-auto">
+                  <div className="space-y-6">
+                    {messages.map((msg, idx) => (
+                      <div key={idx} className="space-y-4">
+                        {/* Mensaje del usuario */}
+                        <div className="flex items-start gap-3">
+                          <div className="bg-gray-200 dark:bg-gray-700 p-2 rounded-full flex-shrink-0">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                              <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4zm-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10c-2.29 0-3.516.68-4.168 1.332-.678.678-.83 1.418-.832 1.664h10z"/>
+                            </svg>
+                          </div>
+                          <div className="bg-gray-100 dark:bg-gray-800 px-4 py-3 rounded-lg w-full">
+                            <pre className="whitespace-pre-wrap font-mono text-sm overflow-auto max-h-[200px]">{msg.content}</pre>
+                            <div className="flex gap-2 mt-2 justify-end">
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                onClick={() => handleContinueConversation(idx)}
+                                className="h-7 px-2 text-xs"
+                              >
+                                <Edit className="h-3 w-3 mr-1" />
+                                Continuar
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Respuesta de la IA */}
+                        <div className="flex items-start gap-3">
+                          <div className="bg-blue-100 dark:bg-blue-900 p-2 rounded-full flex-shrink-0">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                              <path d="M6.5 13a6.474 6.474 0 0 0 3.845-1.258h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.008 1.008 0 0 0-.115-.1A6.471 6.471 0 0 0 13 6.5 6.502 6.502 0 0 0 6.5 0a6.5 6.5 0 1 0 0 13Zm0-8.518c1.664-1.673 5.825 1.254 0 5.018-5.825-3.764-1.664-6.69 0-5.018Z"/>
+                            </svg>
+                          </div>
+                          <div className="bg-blue-50 dark:bg-blue-900/20 px-4 py-3 rounded-lg w-full">
+                            {msg.tab === 'explain' ? (
+                              <ExplanationBlock>
+                                {msg.response?.includes('Explaining') 
+                                  ? msg.response.split('Explaining')[1].split(':\n\n')[1] || ''
+                                  : msg.response || ''
+                                }
+                              </ExplanationBlock>
+                            ) : (
+                              renderCodeResult(msg.response || '', language === "typescript" ? "typescript" : language)
+                            )}
+                            <div className="flex gap-2 mt-2">
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                onClick={() => navigator.clipboard.writeText(msg.response || '')}
+                                className="h-7 px-2 text-xs"
+                              >
+                                <Copy className="h-3 w-3 mr-1" />
+                                Copiar
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     ))}
-                  </SelectContent>
-                </Select>
+                  </div>
+                </ScrollArea>
+              ) : (
+                <div className="h-[400px] flex items-center justify-center border rounded-md bg-gray-50 dark:bg-gray-900">
+                  <div className="text-center p-4">
+                    <Code2 className="w-10 h-10 mx-auto mb-2 text-gray-400" />
+                    <h3 className="text-lg font-medium mb-1">Bienvenido a AI Dev Tools</h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      Escribe tu código o pregunta para comenzar la conversación.
+                    </p>
+                  </div>
+                </div>
+              )}
+              
+              {/* Campo de entrada */}
+              <div className="relative">
+                <Textarea
+                  placeholder={selectedMessage !== null ? "Continuando con tu mensaje anterior..." : "Ingresa tu código o pregunta aquí..."}
+                  className="min-h-[150px] font-mono pr-12"
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && e.ctrlKey) {
+                      e.preventDefault();
+                      if (code.trim()) handleProcess();
+                    }
+                  }}
+                />
+                <div className="absolute bottom-2 right-2 flex items-center gap-2">
+                  <span className="text-xs text-gray-400">Ctrl+Enter</span>
+                  <Button 
+                    size="sm" 
+                    onClick={handleProcess}
+                    disabled={!code.trim()}
+                  >
+                    <Send className="h-4 w-4 mr-1" />
+                    Enviar
+                  </Button>
+                </div>
               </div>
             </div>
-            
-            {/* Historial de mensajes */}
-            {messages.length > 0 ? (
-              <ScrollArea className="h-[400px] border rounded-md p-4 bg-gray-50 dark:bg-gray-900 messages-container overflow-y-auto">
-                <div className="space-y-6">
-                  {messages.map((msg, idx) => (
-                    <div key={idx} className="space-y-4">
-                      {/* Mensaje del usuario */}
-                      <div className="flex items-start gap-3">
-                        <div className="bg-gray-200 dark:bg-gray-700 p-2 rounded-full flex-shrink-0">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                            <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4zm-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10c-2.29 0-3.516.68-4.168 1.332-.678.678-.83 1.418-.832 1.664h10z"/>
-                          </svg>
+
+            <div className={`space-y-4 ${isFullscreen ? 'w-full' : ''}`}>
+              <div className="flex justify-between items-center">
+                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                  <div className="flex justify-between items-center">
+                    <TabsList className="grid grid-cols-3 w-full">
+                      <TabsTrigger value="refactor">Refactor</TabsTrigger>
+                      <TabsTrigger value="test">Generate Tests</TabsTrigger>
+                      <TabsTrigger value="explain">Explain</TabsTrigger>
+                    </TabsList>
+                    
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={toggleFullscreen}
+                      className="ml-2"
+                      title={isFullscreen ? "Restaurar tamaño" : "Pantalla completa"}
+                    >
+                      {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+                    </Button>
+                  </div>
+
+                  <TabsContent value="refactor">
+                    <Card className={`p-4 ${isFullscreen ? 'h-[80vh]' : ''}`}>
+                      <ScrollArea className={`${isFullscreen ? 'h-[75vh]' : 'h-[400px]'}`}>
+                        {result ? renderCodeResult(result, language === "typescript" ? "typescript" : language)
+                          : <div className="text-muted-foreground">{"// Result will appear here..."}</div>
+                        }
+                      </ScrollArea>
+                    </Card>
+                  </TabsContent>
+
+                  <TabsContent value="test">
+                    <Card className={`p-4 ${isFullscreen ? 'h-[80vh]' : ''}`}>
+                      <div className="space-y-4 mb-4">
+                        <div>
+                          <Label>Test Framework</Label>
+                          <Select value={testFramework} onValueChange={setTestFramework}>
+                            <SelectTrigger className="w-[200px]">
+                              <SelectValue placeholder="Select Framework" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {TEST_FRAMEWORKS[language as keyof typeof TEST_FRAMEWORKS].map((framework) => (
+                                <SelectItem key={framework} value={framework}>
+                                  {framework}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         </div>
-                        <div className="bg-gray-100 dark:bg-gray-800 px-4 py-3 rounded-lg w-full">
-                          <pre className="whitespace-pre-wrap font-mono text-sm overflow-auto max-h-[200px]">{msg.content}</pre>
-                          <div className="flex gap-2 mt-2 justify-end">
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              onClick={() => handleContinueConversation(idx)}
-                              className="h-7 px-2 text-xs"
-                            >
-                              <Edit className="h-3 w-3 mr-1" />
-                              Continuar
-                            </Button>
-                          </div>
+                        <div>
+                          <Label>Test Type</Label>
+                          <RadioGroup value={testType} onValueChange={setTestType} className="flex gap-4">
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="unit" id="unit" />
+                              <Label htmlFor="unit">Unit Tests</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="integration" id="integration" />
+                              <Label htmlFor="integration">Integration Tests</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="e2e" id="e2e" />
+                              <Label htmlFor="e2e">E2E Tests</Label>
+                            </div>
+                          </RadioGroup>
                         </div>
                       </div>
-                      
-                      {/* Respuesta de la IA */}
-                      <div className="flex items-start gap-3">
-                        <div className="bg-blue-100 dark:bg-blue-900 p-2 rounded-full flex-shrink-0">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                            <path d="M6.5 13a6.474 6.474 0 0 0 3.845-1.258h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.008 1.008 0 0 0-.115-.1A6.471 6.471 0 0 0 13 6.5 6.502 6.502 0 0 0 6.5 0a6.5 6.5 0 1 0 0 13Zm0-8.518c1.664-1.673 5.825 1.254 0 5.018-5.825-3.764-1.664-6.69 0-5.018Z"/>
-                          </svg>
-                        </div>
-                        <div className="bg-blue-50 dark:bg-blue-900/20 px-4 py-3 rounded-lg w-full">
-                          {msg.tab === 'explain' ? (
+                      <ScrollArea className={`${isFullscreen ? 'h-[65vh]' : 'h-[300px]'}`}>
+                        {result ? renderCodeResult(result, language === "typescript" ? "typescript" : language)
+                          : <div className="text-muted-foreground">{"// Los tests aparecerán aquí después de procesar el código..."}</div>
+                        }
+                      </ScrollArea>
+                    </Card>
+                  </TabsContent>
+
+                  <TabsContent value="explain">
+                    <Card className={`p-4 ${isFullscreen ? 'h-[80vh]' : ''}`}>
+                      <ScrollArea className={`${isFullscreen ? 'h-[75vh]' : 'h-[400px]'}`}>
+                        {result ? (
+                          <div className="chatgpt-message">
                             <ExplanationBlock>
-                              {msg.response?.includes('Explaining') 
-                                ? msg.response.split('Explaining')[1].split(':\n\n')[1] || ''
-                                : msg.response || ''
+                              {result.includes('Explaining') 
+                                ? result.split('Explaining')[1].split(':\n\n')[1] 
+                                : result
                               }
                             </ExplanationBlock>
-                          ) : (
-                            renderCodeResult(msg.response || '', language === "typescript" ? "typescript" : language)
-                          )}
-                          <div className="flex gap-2 mt-2">
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              onClick={() => navigator.clipboard.writeText(msg.response || '')}
-                              className="h-7 px-2 text-xs"
-                            >
-                              <Copy className="h-3 w-3 mr-1" />
-                              Copiar
-                            </Button>
                           </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </ScrollArea>
-            ) : (
-              <div className="h-[400px] flex items-center justify-center border rounded-md bg-gray-50 dark:bg-gray-900">
-                <div className="text-center p-4">
-                  <Code2 className="w-10 h-10 mx-auto mb-2 text-gray-400" />
-                  <h3 className="text-lg font-medium mb-1">Bienvenido a AI Dev Tools</h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Escribe tu código o pregunta para comenzar la conversación.
-                  </p>
-                </div>
+                        ) : (
+                          <div className="text-muted-foreground">{"// La explicación aparecerá aquí después de procesar el código..."}</div>
+                        )}
+                      </ScrollArea>
+                    </Card>
+                  </TabsContent>
+                </Tabs>
               </div>
-            )}
-            
-            {/* Campo de entrada */}
-            <div className="relative">
-              <Textarea
-                placeholder={selectedMessage !== null ? "Continuando con tu mensaje anterior..." : "Ingresa tu código o pregunta aquí..."}
-                className="min-h-[150px] font-mono pr-12"
-                value={code}
-                onChange={(e) => setCode(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && e.ctrlKey) {
-                    e.preventDefault();
-                    if (code.trim()) handleProcess();
-                  }
-                }}
-              />
-              <div className="absolute bottom-2 right-2 flex items-center gap-2">
-                <span className="text-xs text-gray-400">Ctrl+Enter</span>
-                <Button 
-                  size="sm" 
-                  onClick={handleProcess}
-                  disabled={!code.trim()}
-                >
-                  <Send className="h-4 w-4 mr-1" />
-                  Enviar
+
+              <div className="flex gap-2 justify-end">
+                <Button variant="outline" size="icon" onClick={handleCopy}>
+                  <Copy className="h-4 w-4" />
+                </Button>
+                <Button variant="outline" size="icon" onClick={handleDownload}>
+                  <Download className="h-4 w-4" />
+                </Button>
+                <Button variant="outline" size="icon">
+                  <Share2 className="h-4 w-4" />
+                </Button>
+                <Button variant="outline" size="icon">
+                  <History className="h-4 w-4" />
                 </Button>
               </div>
             </div>
           </div>
-
-          <div className={`space-y-4 ${isFullscreen ? 'w-full' : ''}`}>
-            <div className="flex justify-between items-center">
-              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <div className="flex justify-between items-center">
-                  <TabsList className="grid grid-cols-3 w-full">
-                    <TabsTrigger value="refactor">Refactor</TabsTrigger>
-                    <TabsTrigger value="test">Generate Tests</TabsTrigger>
-                    <TabsTrigger value="explain">Explain</TabsTrigger>
-                  </TabsList>
-                  
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={toggleFullscreen}
-                    className="ml-2"
-                    title={isFullscreen ? "Restaurar tamaño" : "Pantalla completa"}
-                  >
-                    {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
-                  </Button>
-                </div>
-
-                <TabsContent value="refactor">
-                  <Card className={`p-4 ${isFullscreen ? 'h-[80vh]' : ''}`}>
-                    <ScrollArea className={`${isFullscreen ? 'h-[75vh]' : 'h-[400px]'}`}>
-                      {result ? renderCodeResult(result, language === "typescript" ? "typescript" : language)
-                        : <div className="text-muted-foreground">{"// Result will appear here..."}</div>
-                      }
-                    </ScrollArea>
-                  </Card>
-                </TabsContent>
-
-                <TabsContent value="test">
-                  <Card className={`p-4 ${isFullscreen ? 'h-[80vh]' : ''}`}>
-                    <div className="space-y-4 mb-4">
-                      <div>
-                        <Label>Test Framework</Label>
-                        <Select value={testFramework} onValueChange={setTestFramework}>
-                          <SelectTrigger className="w-[200px]">
-                            <SelectValue placeholder="Select Framework" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {TEST_FRAMEWORKS[language as keyof typeof TEST_FRAMEWORKS].map((framework) => (
-                              <SelectItem key={framework} value={framework}>
-                                {framework}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div>
-                        <Label>Test Type</Label>
-                        <RadioGroup value={testType} onValueChange={setTestType} className="flex gap-4">
-                          <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="unit" id="unit" />
-                            <Label htmlFor="unit">Unit Tests</Label>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="integration" id="integration" />
-                            <Label htmlFor="integration">Integration Tests</Label>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="e2e" id="e2e" />
-                            <Label htmlFor="e2e">E2E Tests</Label>
-                          </div>
-                        </RadioGroup>
-                      </div>
-                    </div>
-                    <ScrollArea className={`${isFullscreen ? 'h-[65vh]' : 'h-[300px]'}`}>
-                      {result ? renderCodeResult(result, language === "typescript" ? "typescript" : language)
-                        : <div className="text-muted-foreground">{"// Los tests aparecerán aquí después de procesar el código..."}</div>
-                      }
-                    </ScrollArea>
-                  </Card>
-                </TabsContent>
-
-                <TabsContent value="explain">
-                  <Card className={`p-4 ${isFullscreen ? 'h-[80vh]' : ''}`}>
-                    <ScrollArea className={`${isFullscreen ? 'h-[75vh]' : 'h-[400px]'}`}>
-                      {result ? (
-                        <div className="chatgpt-message">
-                          <ExplanationBlock>
-                            {result.includes('Explaining') 
-                              ? result.split('Explaining')[1].split(':\n\n')[1] 
-                              : result
-                            }
-                          </ExplanationBlock>
-                        </div>
-                      ) : (
-                        <div className="text-muted-foreground">{"// La explicación aparecerá aquí después de procesar el código..."}</div>
-                      )}
-                    </ScrollArea>
-                  </Card>
-                </TabsContent>
-              </Tabs>
-            </div>
-
-            <div className="flex gap-2 justify-end">
-              <Button variant="outline" size="icon" onClick={handleCopy}>
-                <Copy className="h-4 w-4" />
-              </Button>
-              <Button variant="outline" size="icon" onClick={handleDownload}>
-                <Download className="h-4 w-4" />
-              </Button>
-              <Button variant="outline" size="icon">
-                <Share2 className="h-4 w-4" />
-              </Button>
-              <Button variant="outline" size="icon">
-                <History className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        </div>
-      </main>
+        </main>
+      </div>
     </div>
   );
 }
