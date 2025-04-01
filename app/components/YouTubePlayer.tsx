@@ -157,8 +157,8 @@ const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl, onTimeUpdate, s
       if (playerRef.current && playerReady) {
         try {
           const currentTime = playerRef.current.getCurrentTime();
-          if (typeof currentTime === 'number') {
-            onTimeUpdate?.(currentTime);
+          if (typeof currentTime === 'number' && onTimeUpdate) {
+            onTimeUpdate(currentTime);
           }
         } catch (error) {
           console.warn("Error al obtener tiempo de reproducción:", error);
@@ -196,7 +196,9 @@ const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl, onTimeUpdate, s
       const timeUpdateInterval = setInterval(() => {
         if (playerRef.current?.getCurrentTime && playerRef.current.getPlayerState() === 1) {
           const currentTime = playerRef.current.getCurrentTime();
-          onTimeUpdate(currentTime);
+          if (onTimeUpdate) {
+            onTimeUpdate(currentTime);
+          }
         }
       }, 100); // Actualizar cada 100ms para mayor precisión
       
@@ -215,13 +217,15 @@ const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl, onTimeUpdate, s
   const onPlayerStateChange: YouTubeProps['onStateChange'] = (event) => {
     console.log('YouTube Player State Change:', event.data);
     // Actualizar el tiempo cuando cambia el estado (reproducción, pausa, etc.)
-    if (event.data === 1) { // 1 = reproduciendo
+    if (event.data === 1 && onTimeUpdate) { // 1 = reproduciendo
       const currentTime = event.target.getCurrentTime();
       onTimeUpdate(currentTime);
     }
   };
 
   const onPlayerPlay: YouTubeProps['onPlay'] = (event) => {
+    if (!onTimeUpdate) return;
+    
     const currentTime = event.target.getCurrentTime();
     onTimeUpdate(currentTime);
     // Iniciar el intervalo para actualizaciones frecuentes durante la reproducción
@@ -277,6 +281,14 @@ declare global {
     YT: any;
     onYouTubeIframeAPIReady: () => void;
   }
+}
+
+// Declare tipos para YouTube Player
+interface YouTubeProps {
+  onReady: (event: any) => void;
+  onStateChange: (event: any) => void;
+  onPlay: (event: any) => void;
+  onPause: (event: any) => void;
 }
 
 export default YouTubePlayer; 
