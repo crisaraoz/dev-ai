@@ -12,6 +12,7 @@ const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl, onTimeUpdate, s
   const [playerReady, setPlayerReady] = useState<boolean>(false);
   const [currentVideoId, setCurrentVideoId] = useState<string | null>(null);
   const previousSeekRef = useRef<number | undefined>(undefined);
+  const updateIntervalRef = useRef<NodeJS.Timeout | null>(null);
   
   // Extract video ID from URL
   const getVideoId = (url: string) => {
@@ -185,6 +186,59 @@ const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl, onTimeUpdate, s
         currentTime += 1;
         onTimeUpdate(currentTime);
       }, 1000);
+    }
+  };
+
+  useEffect(() => {
+    // Cuando el reproductor está listo
+    if (playerRef.current) {
+      // Configurar un intervalo para actualizar el tiempo actual con más frecuencia
+      const timeUpdateInterval = setInterval(() => {
+        if (playerRef.current?.getCurrentTime && playerRef.current.getPlayerState() === 1) {
+          const currentTime = playerRef.current.getCurrentTime();
+          onTimeUpdate(currentTime);
+        }
+      }, 100); // Actualizar cada 100ms para mayor precisión
+      
+      return () => {
+        clearInterval(timeUpdateInterval);
+      };
+    }
+  }, [playerRef.current]);
+  
+  // Eventos del player
+  const onPlayerReady: YouTubeProps['onReady'] = (event) => {
+    console.log('YouTube Player Ready:', event);
+    playerRef.current = event.target;
+  };
+
+  const onPlayerStateChange: YouTubeProps['onStateChange'] = (event) => {
+    console.log('YouTube Player State Change:', event.data);
+    // Actualizar el tiempo cuando cambia el estado (reproducción, pausa, etc.)
+    if (event.data === 1) { // 1 = reproduciendo
+      const currentTime = event.target.getCurrentTime();
+      onTimeUpdate(currentTime);
+    }
+  };
+
+  const onPlayerPlay: YouTubeProps['onPlay'] = (event) => {
+    const currentTime = event.target.getCurrentTime();
+    onTimeUpdate(currentTime);
+    // Iniciar el intervalo para actualizaciones frecuentes durante la reproducción
+    if (updateIntervalRef.current) {
+      clearInterval(updateIntervalRef.current);
+    }
+    updateIntervalRef.current = setInterval(() => {
+      const time = event.target.getCurrentTime();
+      onTimeUpdate(time);
+    }, 100); // Actualización cada 100ms
+  };
+
+  const onPlayerPause: YouTubeProps['onPause'] = () => {
+    // Detener las actualizaciones frecuentes cuando se pausa
+    if (updateIntervalRef.current) {
+      clearInterval(updateIntervalRef.current);
+      updateIntervalRef.current = null;
     }
   };
 

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useTheme } from "next-themes";
 import { Code2 } from "lucide-react";
 
@@ -53,6 +53,10 @@ export default function Home() {
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [currentVideoTime, setCurrentVideoTime] = useState<number>(0);
   const [videoSeekTime, setVideoSeekTime] = useState<number | undefined>(undefined);
+  const [autoScroll, setAutoScroll] = useState<boolean>(true);
+  const [previousScrollPosition, setPreviousScrollPosition] = useState<number>(0);
+  const [userScrolling, setUserScrolling] = useState<boolean>(false);
+  const scrollTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Asegurarse de que la UI se renderiza correctamente después de cargar
   useEffect(() => {
@@ -68,6 +72,271 @@ export default function Home() {
       }
     }
   }, [selectedMessage, messages]);
+
+  // Efecto para detectar cuando el usuario está haciendo scroll manualmente
+  useEffect(() => {
+    const handleScroll = () => {
+      setUserScrolling(true);
+      
+      // Limpiar cualquier temporizador existente
+      if (scrollTimerRef.current) {
+        clearTimeout(scrollTimerRef.current);
+      }
+      
+      // Después de 2 segundos sin scroll, considerar que el usuario terminó de scrollear
+      scrollTimerRef.current = setTimeout(() => {
+        setUserScrolling(false);
+      }, 2000);
+    };
+    
+    // Agregar listener al contenedor de transcripción
+    const scrollContainer = document.querySelector('.transcript-scroll-area');
+    if (scrollContainer) {
+      scrollContainer.addEventListener('scroll', handleScroll);
+    }
+    
+    return () => {
+      // Limpiar event listeners y temporizadores
+      if (scrollContainer) {
+        scrollContainer.removeEventListener('scroll', handleScroll);
+      }
+      
+      if (scrollTimerRef.current) {
+        clearTimeout(scrollTimerRef.current);
+      }
+    };
+  }, [result]); // Recrear este efecto cuando cambia el resultado (nueva transcripción)
+
+  // Segundo efecto para asegurarse de que la línea activa se mantenga resaltada
+  useEffect(() => {
+    // Solo ejecutar cuando hay resultado y tiempo de video
+    if (!result || currentVideoTime <= 0) return;
+    
+    // Crear una función para actualizar el resaltado
+    const updateHighlight = () => {
+      // Convertir segundos a formato MM:SS
+      const minutes = Math.floor(currentVideoTime / 60);
+      const seconds = Math.floor(currentVideoTime % 60);
+      const timeString = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+      
+      const lines = result.split('\n');
+      let closestLineIndex = -1;
+      let closestTimeDiff = Infinity;
+      
+      // Buscar la línea apropiada
+      lines.forEach((line, index) => {
+        if (line.match(/^\d{2}:\d{2}/)) {
+          const lineTime = line.substring(0, 5);
+          const [lineMin, lineSec] = lineTime.split(':').map(Number);
+          const lineTimeInSeconds = lineMin * 60 + lineSec;
+          
+          if (lineTimeInSeconds <= currentVideoTime && (currentVideoTime - lineTimeInSeconds) < closestTimeDiff) {
+            closestTimeDiff = currentVideoTime - lineTimeInSeconds;
+            closestLineIndex = index;
+          }
+        }
+      });
+      
+      // Aplicar el estilo directamente a la línea activa usando JavaScript (más fiable)
+      const applyActiveStyle = (lineElement: HTMLElement) => {
+        // Detectar si estamos en modo oscuro
+        const isDarkMode = document.documentElement.classList.contains('dark');
+        
+        if (isDarkMode) {
+          // Colores para modo oscuro
+          lineElement.style.backgroundColor = '#ff6600'; // Naranjo más intenso
+          lineElement.style.borderLeft = '6px solid #ff3333'; // Rojo brillante
+          lineElement.style.color = 'black';
+          lineElement.style.outline = '2px solid #ff3333';
+        } else {
+          // Colores para modo claro
+          lineElement.style.backgroundColor = 'rgba(255, 165, 0, 0.9)';
+          lineElement.style.borderLeft = '6px solid crimson';
+          lineElement.style.color = 'black';
+          lineElement.style.outline = '2px solid crimson';
+        }
+        
+        // Estilos comunes para ambos temas
+        lineElement.style.fontWeight = '700';
+        lineElement.style.paddingLeft = '0.75rem';
+        lineElement.style.position = 'relative';
+        lineElement.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.3)';
+        lineElement.style.borderRadius = '4px';
+        lineElement.style.transform = 'scale(1.02)';
+        lineElement.style.zIndex = '10';
+        lineElement.style.margin = '4px 0';
+        
+        // Agregar un marcador visual aún más obvio
+        const marker = document.createElement('div');
+        marker.style.position = 'absolute';
+        marker.style.left = '-20px';
+        marker.style.top = '50%';
+        marker.style.transform = 'translateY(-50%)';
+        marker.style.width = '10px';
+        marker.style.height = '10px';
+        marker.style.borderRadius = '50%';
+        marker.style.backgroundColor = isDarkMode ? '#ff3333' : 'crimson';
+        marker.style.animation = 'pulse 1s infinite';
+        
+        // Asegurarse de que no se duplique el marcador
+        const existingMarker = lineElement.querySelector('.line-marker');
+        if (existingMarker) {
+          lineElement.removeChild(existingMarker);
+        }
+        
+        marker.className = 'line-marker';
+        lineElement.appendChild(marker);
+        
+        // Agregar una animación de pulso si no existe
+        if (!document.getElementById('pulse-animation')) {
+          const style = document.createElement('style');
+          style.id = 'pulse-animation';
+          style.textContent = `
+            @keyframes pulse {
+              0% { opacity: 0.6; transform: translateY(-50%) scale(1); }
+              50% { opacity: 1; transform: translateY(-50%) scale(1.3); }
+              100% { opacity: 0.6; transform: translateY(-50%) scale(1); }
+            }
+          `;
+          document.head.appendChild(style);
+        }
+      };
+      
+      // Quitar los estilos aplicados directamente
+      const removeActiveStyle = (element: HTMLElement) => {
+        element.style.backgroundColor = '';
+        element.style.borderLeft = '';
+        element.style.fontWeight = '';
+        element.style.paddingLeft = '';
+        element.style.color = '';
+        element.style.position = '';
+        element.style.boxShadow = '';
+        element.style.borderRadius = '';
+        element.style.transform = '';
+        element.style.zIndex = '';
+        element.style.margin = '';
+        element.style.outline = '';
+      };
+      
+      // Limpiar todos los estilos primero
+      document.querySelectorAll('[id^="transcript-line-"]').forEach(el => {
+        el.classList.remove('transcript-line-active');
+        removeActiveStyle(el as HTMLElement);
+      });
+      
+      // Aplicar el resaltado a la línea correcta
+      if (closestLineIndex >= 0) {
+        const lineElement = document.getElementById(`transcript-line-${closestLineIndex}`);
+        if (lineElement) {
+          console.log(`Resaltando línea: ${closestLineIndex} para tiempo ${timeString}`);
+          
+          // Aplicar clase y también estilos directos
+          lineElement.classList.add('transcript-line-active');
+          applyActiveStyle(lineElement);
+          
+          // Solo hacer scroll si el auto-scroll está activado Y el usuario no está scrolleando
+          if (autoScroll && !userScrolling) {
+            const scrollContainer = document.querySelector('.transcript-scroll-area');
+            if (scrollContainer) {
+              const containerRect = scrollContainer.getBoundingClientRect();
+              const elementRect = lineElement.getBoundingClientRect();
+              
+              // Verificar si el elemento está fuera de la vista
+              const isVisible = 
+                elementRect.top >= containerRect.top && 
+                elementRect.bottom <= containerRect.bottom;
+              
+              if (!isVisible) {
+                lineElement.scrollIntoView({
+                  behavior: 'smooth',
+                  block: 'center',
+                  inline: 'nearest'
+                });
+              }
+            }
+          }
+        }
+      }
+    };
+    
+    // Ejecutar inmediatamente
+    updateHighlight();
+    
+    // Y también configurar un intervalo para actualizar cada 200ms (más frecuente)
+    const intervalId = setInterval(updateHighlight, 200);
+    
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, [result, currentVideoTime, autoScroll, userScrolling]);
+
+  // Observador para detectar cambios en el DOM y asegurar que el resaltado se mantenga
+  useEffect(() => {
+    // Solo ejecutar cuando hay resultado
+    if (!result) return;
+    
+    // Configurar un observador del DOM para asegurarse de que el resaltado se mantenga
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.type === 'childList' || mutation.type === 'attributes') {
+          // Verificar si el resaltado sigue aplicado
+          const activeElement = document.querySelector('.transcript-line-active');
+          if (!activeElement && currentVideoTime > 0) {
+            // Si no hay línea resaltada, forzar una actualización
+            const minutes = Math.floor(currentVideoTime / 60);
+            const seconds = Math.floor(currentVideoTime % 60);
+            console.log(`Forzando actualización de resaltado para tiempo ${minutes}:${seconds}`);
+            
+            // Usar un pequeño retardo para asegurarse de que todo está renderizado
+            setTimeout(() => {
+              const event = new CustomEvent('forceHighlightUpdate', { detail: { time: currentVideoTime } });
+              window.dispatchEvent(event);
+            }, 50);
+          }
+        }
+      });
+    });
+    
+    // Observar cambios en el contenedor de transcripción
+    const transcriptContainer = document.querySelector('.transcript-scroll-area');
+    if (transcriptContainer) {
+      observer.observe(transcriptContainer, { 
+        childList: true, 
+        subtree: true, 
+        attributes: true 
+      });
+    }
+    
+    // Crear un listener para el evento forzado
+    const forceUpdateHandler = (e: Event) => {
+      if (e instanceof CustomEvent) {
+        const time = e.detail?.time;
+        if (typeof time === 'number') {
+          // Ejecutar la actualización del resaltado
+          console.log(`Ejecutando actualización forzada para tiempo ${time}`);
+          // El manejador específico estará en el otro efecto
+        }
+      }
+    };
+    
+    window.addEventListener('forceHighlightUpdate', forceUpdateHandler);
+    
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('forceHighlightUpdate', forceUpdateHandler);
+    };
+  }, [result, currentVideoTime]);
+
+  // Verificar si una línea es visible
+  const isElementInViewport = (el: Element, container: Element) => {
+    const rect = el.getBoundingClientRect();
+    const containerRect = container.getBoundingClientRect();
+    
+    return (
+      rect.top >= containerRect.top &&
+      rect.bottom <= containerRect.bottom
+    );
+  };
 
   // No renderizar contenido hasta que el componente esté montado
   if (!mounted) {
@@ -288,48 +557,8 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
   };
 
   const handleVideoTimeUpdate = (time: number) => {
-    setCurrentVideoTime(time);
-    
-    // Resaltar la línea correspondiente en la transcripción
-    if (result) {
-      // Convertir segundos a formato MM:SS
-      const minutes = Math.floor(time / 60);
-      const seconds = Math.floor(time % 60);
-      const timeString = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-      
-      // Buscar en la transcripción la línea que coincida con el tiempo actual o sea anterior
-      const lines = result.split('\n');
-      let closestLineIndex = -1;
-      let closestTimeDiff = Infinity;
-      
-      lines.forEach((line, index) => {
-        if (line.match(/^\d{2}:\d{2}/)) {
-          const lineTime = line.substring(0, 5);
-          const [lineMin, lineSec] = lineTime.split(':').map(Number);
-          const lineTimeInSeconds = lineMin * 60 + lineSec;
-          
-          // Si el tiempo de la línea es menor o igual al tiempo actual y la diferencia es menor
-          if (lineTimeInSeconds <= time && time - lineTimeInSeconds < closestTimeDiff) {
-            closestTimeDiff = time - lineTimeInSeconds;
-            closestLineIndex = index;
-          }
-        }
-      });
-      
-      // Si encontramos una línea cercana, resaltarla
-      if (closestLineIndex >= 0) {
-        // Limpiar resaltados anteriores
-        document.querySelectorAll('.transcript-line-active').forEach(el => {
-          el.classList.remove('transcript-line-active', 'bg-accent');
-        });
-        
-        // Resaltar la línea actual
-        const lineElement = document.getElementById(`transcript-line-${closestLineIndex}`);
-        if (lineElement) {
-          lineElement.classList.add('transcript-line-active', 'bg-accent');
-          lineElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-      }
+    if (time !== currentVideoTime) {
+      setCurrentVideoTime(time);
     }
   };
 
@@ -416,6 +645,8 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
                 isLoading={isLoading}
                 isYouTubeMode={!!videoUrl}
                 onTimeClick={handleTranscriptTimeClick}
+                autoScroll={autoScroll}
+                setAutoScroll={setAutoScroll}
               />
             </div>
           </div>

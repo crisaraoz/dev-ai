@@ -1,11 +1,11 @@
 import React from "react";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Copy, Download, Share2, History, Maximize2, Minimize2, Loader2 } from "lucide-react";
+import { Copy, Download, Share2, History, Maximize2, Minimize2, Loader2, PauseCircle, Play, PlayCircle, Scroll, ScrollText } from "lucide-react";
 import { renderCodeResult } from "./utils";
 import ExplanationBlock from "./ExplanationBlock";
 import { TEST_FRAMEWORKS } from "./constants";
@@ -26,6 +26,9 @@ interface ResultsAreaProps {
   isLoading: boolean;
   isYouTubeMode: boolean;
   onTimeClick?: (timeString: string) => void;
+  autoScroll?: boolean;
+  setAutoScroll?: (value: boolean) => void;
+  className?: string;
 }
 
 const ResultsArea: React.FC<ResultsAreaProps> = ({
@@ -43,7 +46,10 @@ const ResultsArea: React.FC<ResultsAreaProps> = ({
   handleDownload,
   isLoading,
   isYouTubeMode,
-  onTimeClick
+  onTimeClick,
+  autoScroll = true,
+  setAutoScroll,
+  className = ""
 }) => {
   const LoadingIndicator = () => (
     <div className="flex flex-col items-center justify-center h-full py-8">
@@ -139,70 +145,142 @@ const ResultsArea: React.FC<ResultsAreaProps> = ({
         );
       case "transcript":
         return (
-          <Card className="p-4 h-[calc(100vh-180px)]">
-            <div className="flex items-center gap-2 mb-4">
-              <span className="font-semibold text-lg flex items-center">
-                Transcripción
-              </span>
-              <span className="flex-grow"></span>
-              <div className="flex space-x-2">
-                <Button variant="ghost" size="icon" onClick={handleCopy}>
-                  <Copy className="h-4 w-4" />
-                </Button>
-                <Button variant="ghost" size="icon" onClick={handleDownload}>
-                  <Download className="h-4 w-4" />
-                </Button>
-                <Button variant="ghost" size="icon" onClick={toggleFullscreen}>
-                  {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
-                </Button>
+          <Card className={`w-full flex flex-col h-full overflow-hidden ${className}`}>
+            <CardHeader className="flex pb-0">
+              <div className="flex justify-between items-center w-full">
+                <CardTitle className="text-xl tracking-tight">
+                  Transcripción
+                </CardTitle>
+                
+                {setAutoScroll && (
+                  <Button
+                    variant={autoScroll ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => {
+                      console.log(`Auto-scroll cambiado a: ${!autoScroll}`);
+                      setAutoScroll(!autoScroll);
+                    }}
+                    className="flex items-center gap-1 text-xs font-bold"
+                    title={autoScroll ? "Desactivar desplazamiento automático" : "Activar desplazamiento automático"}
+                  >
+                    {autoScroll ? (
+                      <>
+                        <ScrollText className="h-4 w-4 mr-1 animate-pulse" />
+                        Auto-scroll <span className="text-green-400 ml-1">ON</span>
+                      </>
+                    ) : (
+                      <>
+                        <Scroll className="h-4 w-4 mr-1" />
+                        Auto-scroll <span className="text-red-400 ml-1">OFF</span>
+                      </>
+                    )}
+                  </Button>
+                )}
               </div>
-            </div>
-            <ScrollArea className="h-[calc(100%-3rem)] pr-4">
-              {isLoading ? (
-                <div className="flex flex-col items-center justify-center h-full">
-                  <Loader2 className="h-8 w-8 animate-spin mb-4" />
-                  <p className="text-muted-foreground">Obteniendo transcripción...</p>
-                </div>
-              ) : result ? (
-                <div className="space-y-1 font-mono text-sm">
-                  {result.split('\n').map((line, i) => {
-                    // Verificar si la línea tiene un formato de timestamp (MM:SS)
-                    const hasTimestamp = line.match(/^\d{2}:\d{2}/);
-                    
-                    return (
-                      <div 
-                        key={i} 
-                        className={`${hasTimestamp ? 'flex items-start' : ''} py-0.5 px-1 rounded hover:bg-accent/30 transition-colors`}
-                        id={`transcript-line-${i}`}
-                      >
-                        {hasTimestamp ? (
-                          <>
-                            <span 
-                              className="inline-block mr-2 text-primary-foreground bg-primary px-1 rounded min-w-[40px] text-center font-semibold cursor-pointer hover:bg-primary-foreground hover:text-primary transition-colors"
-                              onClick={() => onTimeClick && onTimeClick(line.substring(0, 5))}
-                              title="Ir a este momento del video"
-                            >
-                              {line.substring(0, 5)}
-                            </span>
-                            <span className="flex-grow">{line.substring(6)}</span>
-                          </>
-                        ) : (
-                          line
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="text-muted-foreground">{"// La transcripción aparecerá aquí..."}</div>
-              )}
-            </ScrollArea>
+            </CardHeader>
+            
+            <CardContent className="flex-1 overflow-hidden p-0">
+              <ScrollArea className="h-[400px] p-4 transcript-scroll-area">
+                {isLoading ? (
+                  <div className="flex flex-col items-center justify-center h-full">
+                    <Loader2 className="h-8 w-8 animate-spin mb-4" />
+                    <p className="text-muted-foreground">Obteniendo transcripción...</p>
+                  </div>
+                ) : result ? (
+                  <div className="space-y-1 font-mono text-sm">
+                    {result.split('\n').map((line, i) => {
+                      // Verificar si la línea tiene un formato de timestamp (MM:SS)
+                      const hasTimestamp = line.match(/^\d{2}:\d{2}/);
+                      
+                      return (
+                        <div 
+                          key={i} 
+                          className={`${hasTimestamp ? 'flex items-start' : ''} py-0.5 px-1 rounded hover:bg-accent/30 transition-colors`}
+                          id={`transcript-line-${i}`}
+                        >
+                          {hasTimestamp ? (
+                            <>
+                              <span 
+                                className="inline-block mr-2 text-primary-foreground bg-primary px-1 rounded min-w-[40px] text-center font-semibold cursor-pointer hover:bg-primary-foreground hover:text-primary transition-colors"
+                                onClick={() => onTimeClick && onTimeClick(line.substring(0, 5))}
+                                title="Ir a este momento del video"
+                              >
+                                {line.substring(0, 5)}
+                              </span>
+                              <span className="flex-grow">{line.substring(6)}</span>
+                            </>
+                          ) : (
+                            line
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="text-muted-foreground">{"// La transcripción aparecerá aquí..."}</div>
+                )}
+              </ScrollArea>
+            </CardContent>
           </Card>
         );
       default:
         return null;
     }
   };
+
+  // Estilo CSS para la línea activa
+  React.useEffect(() => {
+    // Agregar estilos CSS para la línea activa
+    const style = document.createElement('style');
+    style.innerHTML = `
+      .transcript-line-active {
+        background-color: rgba(255, 165, 0, 0.9) !important;
+        border-left: 6px solid crimson !important;
+        font-weight: 700;
+        transition: all 0.3s ease;
+        padding-left: 0.75rem !important;
+        color: black !important;
+        position: relative;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        border-radius: 4px;
+        transform: scale(1.02);
+        z-index: 10;
+        margin: 4px 0;
+        outline: 2px solid crimson;
+      }
+      
+      .transcript-line-active::before {
+        content: '►';
+        position: absolute;
+        left: -16px;
+        color: crimson;
+        animation: pulse 1s infinite;
+        font-size: 14px;
+      }
+      
+      .dark .transcript-line-active {
+        background-color: #ff8c00 !important;
+        color: black !important;
+        border-left-color: #ff3333 !important;
+        outline-color: #ff3333;
+      }
+      
+      .dark .transcript-line-active::before {
+        color: #ff3333;
+      }
+      
+      @keyframes pulse {
+        0% { opacity: 0.7; }
+        50% { opacity: 1; }
+        100% { opacity: 0.7; }
+      }
+    `;
+    document.head.appendChild(style);
+    
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
 
   return (
     <div className="space-y-4">
