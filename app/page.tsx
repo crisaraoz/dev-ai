@@ -12,6 +12,7 @@ import InputArea from "./components/InputArea";
 import ResultsArea from "./components/ResultsArea";
 import LanguageSelector from "./components/LanguageSelector";
 import Footer from "./components/Footer";
+import YouTubePlayer from "./components/YouTubePlayer";
 
 export default function Home() {
   const [code, setCode] = useState("");
@@ -49,6 +50,7 @@ export default function Home() {
     }
   ]);
   const [activeConversation, setActiveConversation] = useState<string | null>("1");
+  const [videoUrl, setVideoUrl] = useState<string | null>(null);
 
   // Asegurarse de que la UI se renderiza correctamente después de cargar
   useEffect(() => {
@@ -71,8 +73,6 @@ export default function Home() {
   }
 
   const handleProcess = () => {
-    if (!code.trim()) return;
-    
     setIsLoading(true);
     
     // Simulamos el tiempo de respuesta de una API
@@ -117,29 +117,13 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
 
         // Usamos formato estándar para las explicaciones (encabezado + contenido)
         message = `Explaining code at ${explanationLevel} level for ${language}:\n\n${explanation}`;
+      } else if (activeTab === "transcript") {
+        message = `Transcript of the code:\n\n${code}\n\nAnalysis and comments:\n- The code appears to be written in ${language}\n- It follows standard coding conventions\n- The structure is clear and well-organized`;
       } else {
-        message = `Processed ${language} code:\n\n`;
-        
-        // Example refactored code for FormValidator
-        if (language === "javascript" || language === "typescript") {
-          message += `import { useState } from "react";\nimport styles from "../styles/FormValidator.module.scss";\n\nconst FormValidator = () => {\n  const [email, setEmail] = useState("");\n  const [error, setError] = useState("");\n  const [success, setSuccess] = useState(false);\n\n  const validateEmail = (email) => {\n    const emailRegex = /^[\\w-]+(\\.[\\w-]+)*@([\\w-]+\\.)+[a-zA-Z]{2,7}$/;\n    return emailRegex.test(email);\n  };\n\n  const handleSubmit = (e) => {\n    e.preventDefault();\n    setError("");\n    setSuccess(false);\n    \n    if (!email) {\n      setError("El campo no puede estar vacío.");\n      return;\n    }\n    \n    if (!validateEmail(email)) {\n      setError("El formato del email no es válido.");\n      return;\n    }\n    \n    // Si pasa todas las validaciones\n    setSuccess(true);\n    console.log("Email válido:", email);\n  };\n\n  return (\n    <div className={styles.formContainer}>\n      <form onSubmit={handleSubmit} role="form">\n        <div className={styles.inputGroup}>\n          <label htmlFor="email">Email:</label>\n          <input\
-            type="text"\
-            id="email"\
-            value={email}\
-            onChange={(e) => setEmail(e.target.value)}\
-            className={error ? styles.inputError : ""}\
-          />\
-          {error && <p className={styles.errorMessage}>{error}</p>}\
-          {success && <p className={styles.successMessage}>¡Email validado correctamente!</p>}\
-        </div>\
-        <button type="submit" className={styles.submitButton}>Validar</button>\
-      </form>\
-    </div>\
-  );\
-};\n\nexport default FormValidator;`;
-        }
+        // Refactor case
+        message = `// Refactored version of your ${language} code:\n\n${code}\n\n// Additional improvements could include:\n// - Better variable naming\n// - Code organization\n// - Performance optimizations`;
       }
-      
+
       const newMessage = {
         type: 'user' as const,
         content: code,
@@ -268,6 +252,27 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
     }
   };
 
+  const handleYouTubeUrl = async (url: string) => {
+    setVideoUrl(url);
+    setActiveTab("transcript");
+    setIsLoading(true);
+    
+    // Simulamos la obtención de la transcripción
+    // En un caso real, aquí llamarías a tu API de transcripción
+    setTimeout(() => {
+      const transcriptionResult = `Transcription of video: ${url}\n\n` +
+        "00:00 Introduction\n" +
+        "00:15 Main topic discussion\n" +
+        "02:30 Key points covered\n" +
+        "05:45 Summary and conclusion\n\n" +
+        "Note: This is a simulated transcription. In a real implementation, " +
+        "you would need to integrate with a transcription service API.";
+      
+      setResult(transcriptionResult);
+      setIsLoading(false);
+    }, 2000);
+  };
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Sidebar Component */}
@@ -296,12 +301,10 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
                 setExplanationLevel={setExplanationLevel}
               />
               
-              {/* Message History Component */}
-              <MessageHistory 
-                messages={messages}
-                language={language}
-                handleContinueConversation={handleContinueConversation}
-              />
+              {/* YouTube Player / Welcome Screen */}
+              <div className="bg-card rounded-lg overflow-hidden border">
+                <YouTubePlayer videoUrl={videoUrl} />
+              </div>
               
               {/* Input Area Component */}
               <InputArea 
@@ -310,6 +313,7 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
                 handleProcess={handleProcess}
                 selectedMessage={selectedMessage}
                 isLoading={isLoading}
+                onYouTubeUrl={handleYouTubeUrl}
               />
             </div>
 

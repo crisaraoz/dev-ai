@@ -1,5 +1,4 @@
 import React from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
@@ -49,114 +48,141 @@ const ResultsArea: React.FC<ResultsAreaProps> = ({
     </div>
   );
 
+  const renderContent = () => {
+    switch (activeTab) {
+      case "refactor":
+        return (
+          <Card className={`p-4 ${isFullscreen ? 'h-[80vh]' : ''}`}>
+            <ScrollArea className={`${isFullscreen ? 'h-[75vh]' : 'h-[400px]'}`}>
+              {isLoading ? (
+                <LoadingIndicator />
+              ) : result ? (
+                renderCodeResult(result, language === "typescript" ? "typescript" : language)
+              ) : (
+                <div className="text-muted-foreground">{"// Result will appear here..."}</div>
+              )}
+            </ScrollArea>
+          </Card>
+        );
+      case "test":
+        return (
+          <Card className={`p-4 ${isFullscreen ? 'h-[80vh]' : ''}`}>
+            <div className="space-y-4 mb-4">
+              <div>
+                <Label>Test Framework</Label>
+                <Select value={testFramework} onValueChange={setTestFramework} disabled={isLoading}>
+                  <SelectTrigger className="w-[200px]">
+                    <SelectValue placeholder="Select Framework" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {TEST_FRAMEWORKS[language as keyof typeof TEST_FRAMEWORKS]?.map((framework) => (
+                      <SelectItem key={framework} value={framework}>
+                        {framework}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Test Type</Label>
+                <RadioGroup value={testType} onValueChange={setTestType} className="flex gap-4" disabled={isLoading}>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="unit" id="unit" />
+                    <Label htmlFor="unit">Unit Tests</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="integration" id="integration" />
+                    <Label htmlFor="integration">Integration Tests</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="e2e" id="e2e" />
+                    <Label htmlFor="e2e">E2E Tests</Label>
+                  </div>
+                </RadioGroup>
+              </div>
+            </div>
+            <ScrollArea className={`${isFullscreen ? 'h-[65vh]' : 'h-[300px]'}`}>
+              {isLoading ? (
+                <LoadingIndicator />
+              ) : result ? (
+                renderCodeResult(result, language === "typescript" ? "typescript" : language)
+              ) : (
+                <div className="text-muted-foreground">{"// The tests will appear here after processing the code..."}</div>
+              )}
+            </ScrollArea>
+          </Card>
+        );
+      case "explain":
+        return (
+          <Card className={`p-4 ${isFullscreen ? 'h-[80vh]' : ''}`}>
+            <ScrollArea className={`${isFullscreen ? 'h-[75vh]' : 'h-[400px]'}`}>
+              {isLoading ? (
+                <LoadingIndicator />
+              ) : result ? (
+                <div className="chatgpt-message">
+                  <ExplanationBlock>
+                    {result.includes('Explaining') 
+                      ? result.split('Explaining')[1].split(':\n\n')[1] 
+                      : result
+                    }
+                  </ExplanationBlock>
+                </div>
+              ) : (
+                <div className="text-muted-foreground">{"// The explanation will appear here after processing the code..."}</div>
+              )}
+            </ScrollArea>
+          </Card>
+        );
+      case "transcript":
+        return (
+          <Card className={`p-4 ${isFullscreen ? 'h-[80vh]' : ''}`}>
+            <ScrollArea className={`${isFullscreen ? 'h-[75vh]' : 'h-[400px]'}`}>
+              {isLoading ? (
+                <LoadingIndicator />
+              ) : result ? (
+                <div className="chatgpt-message whitespace-pre-wrap font-mono">
+                  {result}
+                </div>
+              ) : (
+                <div className="text-muted-foreground">{"// The transcript will appear here..."}</div>
+              )}
+            </ScrollArea>
+          </Card>
+        );
+      default:
+        return null;
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <div className="flex justify-between items-center">
-            <TabsList className="grid grid-cols-3 w-full">
-              <TabsTrigger value="refactor">Refactor</TabsTrigger>
-              <TabsTrigger value="test">Generate Tests</TabsTrigger>
-              <TabsTrigger value="explain">Explain</TabsTrigger>
-            </TabsList>
-            
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={toggleFullscreen}
-              className="ml-2"
-              title={isFullscreen ? "Restaurar tamaño" : "Pantalla completa"}
-            >
-              {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
-            </Button>
-          </div>
-
-          <div className="relative tabs-container">
-            <TabsContent value="refactor" className="w-full">
-              <Card className={`p-4 ${isFullscreen ? 'h-[80vh]' : ''}`}>
-                <ScrollArea className={`${isFullscreen ? 'h-[75vh]' : 'h-[400px]'}`}>
-                  {isLoading ? (
-                    <LoadingIndicator />
-                  ) : result ? (
-                    renderCodeResult(result, language === "typescript" ? "typescript" : language)
-                  ) : (
-                    <div className="text-muted-foreground">{"// Result will appear here..."}</div>
-                  )}
-                </ScrollArea>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="test" className="w-full">
-              <Card className={`p-4 ${isFullscreen ? 'h-[80vh]' : ''}`}>
-                <div className="space-y-4 mb-4">
-                  <div>
-                    <Label>Test Framework</Label>
-                    <Select value={testFramework} onValueChange={setTestFramework} disabled={isLoading}>
-                      <SelectTrigger className="w-[200px]">
-                        <SelectValue placeholder="Select Framework" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {TEST_FRAMEWORKS[language as keyof typeof TEST_FRAMEWORKS]?.map((framework) => (
-                          <SelectItem key={framework} value={framework}>
-                            {framework}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label>Test Type</Label>
-                    <RadioGroup value={testType} onValueChange={setTestType} className="flex gap-4" disabled={isLoading}>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="unit" id="unit" />
-                        <Label htmlFor="unit">Unit Tests</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="integration" id="integration" />
-                        <Label htmlFor="integration">Integration Tests</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="e2e" id="e2e" />
-                        <Label htmlFor="e2e">E2E Tests</Label>
-                      </div>
-                    </RadioGroup>
-                  </div>
-                </div>
-                <ScrollArea className={`${isFullscreen ? 'h-[65vh]' : 'h-[300px]'}`}>
-                  {isLoading ? (
-                    <LoadingIndicator />
-                  ) : result ? (
-                    renderCodeResult(result, language === "typescript" ? "typescript" : language)
-                  ) : (
-                    <div className="text-muted-foreground">{"// The tests will appear here after processing the code..."}</div>
-                  )}
-                </ScrollArea>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="explain" className="w-full">
-              <Card className={`p-4 ${isFullscreen ? 'h-[80vh]' : ''}`}>
-                <ScrollArea className={`${isFullscreen ? 'h-[75vh]' : 'h-[400px]'}`}>
-                  {isLoading ? (
-                    <LoadingIndicator />
-                  ) : result ? (
-                    <div className="chatgpt-message">
-                      <ExplanationBlock>
-                        {result.includes('Explaining') 
-                          ? result.split('Explaining')[1].split(':\n\n')[1] 
-                          : result
-                        }
-                      </ExplanationBlock>
-                    </div>
-                  ) : (
-                    <div className="text-muted-foreground">{"// The explanation will appear here after processing the code..."}</div>
-                  )}
-                </ScrollArea>
-              </Card>
-            </TabsContent>
-          </div>
-        </Tabs>
+        <div className="flex items-center gap-2 w-full">
+          <Select value={activeTab} onValueChange={setActiveTab}>
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="Select option" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="refactor">Refactor</SelectItem>
+              <SelectItem value="test">Generate Tests</SelectItem>
+              <SelectItem value="explain">Explain</SelectItem>
+              <SelectItem value="transcript">Transcript</SelectItem>
+            </SelectContent>
+          </Select>
+          
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleFullscreen}
+            className="ml-2"
+            title={isFullscreen ? "Restaurar tamaño" : "Pantalla completa"}
+          >
+            {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+          </Button>
+        </div>
       </div>
+
+      {renderContent()}
 
       <div className="flex gap-2 justify-end">
         <Button variant="outline" size="icon" onClick={handleCopy} disabled={isLoading || !result}>
