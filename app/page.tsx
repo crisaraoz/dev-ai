@@ -51,6 +51,8 @@ export default function Home() {
   ]);
   const [activeConversation, setActiveConversation] = useState<string | null>("1");
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
+  const [currentVideoTime, setCurrentVideoTime] = useState<number>(0);
+  const [videoSeekTime, setVideoSeekTime] = useState<number | undefined>(undefined);
 
   // Asegurarse de que la UI se renderiza correctamente después de cargar
   useEffect(() => {
@@ -257,20 +259,95 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
     setActiveTab("transcript");
     setIsLoading(true);
     
-    // Simulamos la obtención de la transcripción
-    // En un caso real, aquí llamarías a tu API de transcripción
-    setTimeout(() => {
-      const transcriptionResult = `Transcription of video: ${url}\n\n` +
-        "00:00 Introduction\n" +
-        "00:15 Main topic discussion\n" +
-        "02:30 Key points covered\n" +
-        "05:45 Summary and conclusion\n\n" +
-        "Note: This is a simulated transcription. In a real implementation, " +
-        "you would need to integrate with a transcription service API.";
-      
-      setResult(transcriptionResult);
+    try {
+      const response = await fetch('http://localhost:8000/api/v1/transcription/youtube', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          video_url: url,
+          // No especificamos language_code para que el backend use su lógica de fallback
+          use_generated: true   // Permitir transcripciones auto-generadas
+        })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || 'Error al obtener la transcripción');
+      }
+
+      const data = await response.json();
+      setResult(data.transcription);
+    } catch (error: any) {
+      console.error('Error:', error);
+      setResult(`Error al procesar el video: ${error.message || 'Error desconocido'}`);
+    } finally {
       setIsLoading(false);
-    }, 2000);
+    }
+  };
+
+  const handleVideoTimeUpdate = (time: number) => {
+    setCurrentVideoTime(time);
+    
+    // Resaltar la línea correspondiente en la transcripción
+    if (result) {
+      // Convertir segundos a formato MM:SS
+      const minutes = Math.floor(time / 60);
+      const seconds = Math.floor(time % 60);
+      const timeString = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+      
+      // Buscar en la transcripción la línea que coincida con el tiempo actual o sea anterior
+      const lines = result.split('\n');
+      let closestLineIndex = -1;
+      let closestTimeDiff = Infinity;
+      
+      lines.forEach((line, index) => {
+        if (line.match(/^\d{2}:\d{2}/)) {
+          const lineTime = line.substring(0, 5);
+          const [lineMin, lineSec] = lineTime.split(':').map(Number);
+          const lineTimeInSeconds = lineMin * 60 + lineSec;
+          
+          // Si el tiempo de la línea es menor o igual al tiempo actual y la diferencia es menor
+          if (lineTimeInSeconds <= time && time - lineTimeInSeconds < closestTimeDiff) {
+            closestTimeDiff = time - lineTimeInSeconds;
+            closestLineIndex = index;
+          }
+        }
+      });
+      
+      // Si encontramos una línea cercana, resaltarla
+      if (closestLineIndex >= 0) {
+        // Limpiar resaltados anteriores
+        document.querySelectorAll('.transcript-line-active').forEach(el => {
+          el.classList.remove('transcript-line-active', 'bg-accent');
+        });
+        
+        // Resaltar la línea actual
+        const lineElement = document.getElementById(`transcript-line-${closestLineIndex}`);
+        if (lineElement) {
+          lineElement.classList.add('transcript-line-active', 'bg-accent');
+          lineElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }
+    }
+  };
+
+  // Función para manejar los clics en los timestamps de la transcripción
+  const handleTranscriptTimeClick = (timeString: string) => {
+    if (timeString.match(/^\d{2}:\d{2}/)) {
+      const [minutes, seconds] = timeString.split(':').map(Number);
+      const timeInSeconds = minutes * 60 + seconds;
+      console.log(`Clicking timestamp ${timeString}, seeking to ${timeInSeconds} seconds`);
+      
+      // Reset para forzar actualización incluso si el valor es el mismo
+      setVideoSeekTime(undefined);
+      
+      // Pequeño retardo para asegurar que el reset surta efecto
+      setTimeout(() => {
+        setVideoSeekTime(timeInSeconds);
+      }, 50);
+    }
   };
 
   return (
@@ -303,7 +380,11 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
               
               {/* YouTube Player / Welcome Screen */}
               <div className="bg-card rounded-lg overflow-hidden border">
-                <YouTubePlayer videoUrl={videoUrl} />
+                <YouTubePlayer 
+                  videoUrl={videoUrl} 
+                  onTimeUpdate={handleVideoTimeUpdate}
+                  seekTo={videoSeekTime}
+                />
               </div>
               
               {/* Input Area Component */}
@@ -333,6 +414,8 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
                 handleCopy={handleCopy}
                 handleDownload={handleDownload}
                 isLoading={isLoading}
+                isYouTubeMode={!!videoUrl}
+                onTimeClick={handleTranscriptTimeClick}
               />
             </div>
           </div>

@@ -1,10 +1,193 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 interface YouTubePlayerProps {
   videoUrl: string | null;
+  onTimeUpdate?: (currentTime: number) => void;
+  seekTo?: number; // Nueva prop para controlar la posición del video
 }
 
-const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
+const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl, onTimeUpdate, seekTo }) => {
+  const playerRef = useRef<any>(null);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const [playerReady, setPlayerReady] = useState<boolean>(false);
+  const [currentVideoId, setCurrentVideoId] = useState<string | null>(null);
+  const previousSeekRef = useRef<number | undefined>(undefined);
+  
+  // Extract video ID from URL
+  const getVideoId = (url: string) => {
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+    const match = url.match(regExp);
+    return match && match[2].length === 11 ? match[2] : null;
+  };
+
+  // Cargar la API de YouTube
+  useEffect(() => {
+    // Si la API de YouTube ya está cargada, no hacer nada
+    if (window.YT) return;
+    
+    // Función que se llamará cuando la API esté lista
+    window.onYouTubeIframeAPIReady = () => {
+      console.log("YouTube API ready");
+    };
+    
+    // Cargar el script de la API de YouTube
+    const tag = document.createElement('script');
+    tag.src = 'https://www.youtube.com/iframe_api';
+    const firstScriptTag = document.getElementsByTagName('script')[0];
+    firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
+    
+    // Limpiar el intervalo cuando se desmonte el componente
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+  }, []);
+
+  // Efecto para detectar cambios en la URL del video
+  useEffect(() => {
+    if (!videoUrl) return;
+    
+    const newVideoId = getVideoId(videoUrl);
+    if (newVideoId !== currentVideoId) {
+      console.log(`Video URL changed from ${currentVideoId} to ${newVideoId}`);
+      setCurrentVideoId(newVideoId);
+      setPlayerReady(false);
+      
+      // Si el reproductor ya existe, destruirlo
+      if (playerRef.current) {
+        try {
+          playerRef.current.destroy();
+          playerRef.current = null;
+        } catch (error) {
+          console.error("Error al destruir el reproductor:", error);
+        }
+      }
+      
+      // Inicializar el nuevo reproductor
+      loadPlayer(newVideoId);
+    }
+  }, [videoUrl]);
+
+  // Efecto para manejar los cambios en seekTo
+  useEffect(() => {
+    // Solo procesar si seekTo ha cambiado y el reproductor está listo
+    if (seekTo !== undefined && seekTo !== previousSeekRef.current && playerReady && playerRef.current) {
+      console.log(`Seeking to ${seekTo} seconds`);
+      try {
+        playerRef.current.seekTo(seekTo, true);
+        previousSeekRef.current = seekTo;
+      } catch (error) {
+        console.error("Error al buscar posición en el video:", error);
+      }
+    }
+  }, [seekTo, playerReady]);
+
+  // Función para cargar el reproductor de YouTube
+  const loadPlayer = (videoId: string | null) => {
+    if (!videoId) return;
+    
+    // Esperar a que la API de YouTube esté lista
+    const checkYTAndCreatePlayer = () => {
+      if (!window.YT || !window.YT.Player) {
+        console.log("Esperando a que YouTube API esté lista...");
+        setTimeout(checkYTAndCreatePlayer, 100);
+        return;
+      }
+      
+      console.log("Creando reproductor para video ID:", videoId);
+      
+      try {
+        playerRef.current = new window.YT.Player('youtube-player', {
+          height: '100%',
+          width: '100%',
+          videoId: videoId,
+          playerVars: {
+            autoplay: 0,
+            modestbranding: 1,
+            rel: 0,
+            origin: window.location.origin
+          },
+          events: {
+            onReady: (event: any) => {
+              console.log("Reproductor listo");
+              setPlayerReady(true);
+              
+              // Si hay un seekTo pendiente, aplicarlo ahora
+              if (seekTo !== undefined) {
+                console.log(`Aplicando seekTo pendiente a ${seekTo} segundos`);
+                try {
+                  event.target.seekTo(seekTo, true);
+                  previousSeekRef.current = seekTo;
+                } catch (error) {
+                  console.error("Error al aplicar seekTo pendiente:", error);
+                }
+              }
+            },
+            onStateChange: (event: any) => {
+              if (event.data === window.YT.PlayerState.PLAYING) {
+                startTimeUpdates();
+              } else {
+                stopTimeUpdates();
+              }
+            },
+            onError: (event: any) => {
+              console.error("Error en el reproductor de YouTube:", event.data);
+            }
+          }
+        });
+      } catch (error) {
+        console.error("Error al crear el reproductor:", error);
+        // Fallback a simulación de tiempo
+        startTimeSimulation();
+      }
+    };
+    
+    // Iniciar el proceso de creación del reproductor
+    checkYTAndCreatePlayer();
+  };
+
+  const startTimeUpdates = () => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+    }
+
+    intervalRef.current = setInterval(() => {
+      if (playerRef.current && playerReady) {
+        try {
+          const currentTime = playerRef.current.getCurrentTime();
+          if (typeof currentTime === 'number') {
+            onTimeUpdate?.(currentTime);
+          }
+        } catch (error) {
+          console.warn("Error al obtener tiempo de reproducción:", error);
+        }
+      }
+    }, 500);
+  };
+
+  const stopTimeUpdates = () => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+  };
+
+  // Simulación de tiempo como fallback
+  const startTimeSimulation = () => {
+    if (videoUrl && onTimeUpdate) {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+
+      let currentTime = 0;
+      intervalRef.current = setInterval(() => {
+        currentTime += 1;
+        onTimeUpdate(currentTime);
+      }, 1000);
+    }
+  };
+
   if (!videoUrl) {
     return (
       <div className="flex flex-col items-center justify-center h-full text-center p-8">
@@ -16,13 +199,6 @@ const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
       </div>
     );
   }
-
-  // Extract video ID from URL
-  const getVideoId = (url: string) => {
-    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-    const match = url.match(regExp);
-    return match && match[2].length === 11 ? match[2] : null;
-  };
 
   const videoId = getVideoId(videoUrl);
 
@@ -36,15 +212,17 @@ const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
 
   return (
     <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
-      <iframe
-        className="absolute top-0 left-0 w-full h-full"
-        src={`https://www.youtube.com/embed/${videoId}`}
-        title="YouTube video player"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        allowFullScreen
-      />
+      <div id="youtube-player" className="absolute top-0 left-0 w-full h-full"></div>
     </div>
   );
 };
+
+// Agregar declaración global para TypeScript
+declare global {
+  interface Window {
+    YT: any;
+    onYouTubeIframeAPIReady: () => void;
+  }
+}
 
 export default YouTubePlayer; 

@@ -23,7 +23,9 @@ interface ResultsAreaProps {
   toggleFullscreen: () => void;
   handleCopy: () => void;
   handleDownload: () => void;
-  isLoading?: boolean;
+  isLoading: boolean;
+  isYouTubeMode: boolean;
+  onTimeClick?: (timeString: string) => void;
 }
 
 const ResultsArea: React.FC<ResultsAreaProps> = ({
@@ -39,7 +41,9 @@ const ResultsArea: React.FC<ResultsAreaProps> = ({
   toggleFullscreen,
   handleCopy,
   handleDownload,
-  isLoading = false
+  isLoading,
+  isYouTubeMode,
+  onTimeClick
 }) => {
   const LoadingIndicator = () => (
     <div className="flex flex-col items-center justify-center h-full py-8">
@@ -135,16 +139,62 @@ const ResultsArea: React.FC<ResultsAreaProps> = ({
         );
       case "transcript":
         return (
-          <Card className={`p-4 ${isFullscreen ? 'h-[80vh]' : ''}`}>
-            <ScrollArea className={`${isFullscreen ? 'h-[75vh]' : 'h-[400px]'}`}>
+          <Card className="p-4 h-[calc(100vh-180px)]">
+            <div className="flex items-center gap-2 mb-4">
+              <span className="font-semibold text-lg flex items-center">
+                Transcripción
+              </span>
+              <span className="flex-grow"></span>
+              <div className="flex space-x-2">
+                <Button variant="ghost" size="icon" onClick={handleCopy}>
+                  <Copy className="h-4 w-4" />
+                </Button>
+                <Button variant="ghost" size="icon" onClick={handleDownload}>
+                  <Download className="h-4 w-4" />
+                </Button>
+                <Button variant="ghost" size="icon" onClick={toggleFullscreen}>
+                  {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+                </Button>
+              </div>
+            </div>
+            <ScrollArea className="h-[calc(100%-3rem)] pr-4">
               {isLoading ? (
-                <LoadingIndicator />
+                <div className="flex flex-col items-center justify-center h-full">
+                  <Loader2 className="h-8 w-8 animate-spin mb-4" />
+                  <p className="text-muted-foreground">Obteniendo transcripción...</p>
+                </div>
               ) : result ? (
-                <div className="chatgpt-message whitespace-pre-wrap font-mono">
-                  {result}
+                <div className="space-y-1 font-mono text-sm">
+                  {result.split('\n').map((line, i) => {
+                    // Verificar si la línea tiene un formato de timestamp (MM:SS)
+                    const hasTimestamp = line.match(/^\d{2}:\d{2}/);
+                    
+                    return (
+                      <div 
+                        key={i} 
+                        className={`${hasTimestamp ? 'flex items-start' : ''} py-0.5 px-1 rounded hover:bg-accent/30 transition-colors`}
+                        id={`transcript-line-${i}`}
+                      >
+                        {hasTimestamp ? (
+                          <>
+                            <span 
+                              className="inline-block mr-2 text-primary-foreground bg-primary px-1 rounded min-w-[40px] text-center font-semibold cursor-pointer hover:bg-primary-foreground hover:text-primary transition-colors"
+                              onClick={() => onTimeClick && onTimeClick(line.substring(0, 5))}
+                              title="Ir a este momento del video"
+                            >
+                              {line.substring(0, 5)}
+                            </span>
+                            <span className="flex-grow">{line.substring(6)}</span>
+                          </>
+                        ) : (
+                          line
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               ) : (
-                <div className="text-muted-foreground">{"// The transcript will appear here..."}</div>
+                <div className="text-muted-foreground">{"// La transcripción aparecerá aquí..."}</div>
               )}
             </ScrollArea>
           </Card>
@@ -163,9 +213,27 @@ const ResultsArea: React.FC<ResultsAreaProps> = ({
               <SelectValue placeholder="Select option" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="refactor">Refactor</SelectItem>
-              <SelectItem value="test">Generate Tests</SelectItem>
-              <SelectItem value="explain">Explain</SelectItem>
+              <SelectItem 
+                value="refactor" 
+                disabled={isYouTubeMode}
+                className={isYouTubeMode ? "opacity-50 cursor-not-allowed" : ""}
+              >
+                Refactor
+              </SelectItem>
+              <SelectItem 
+                value="test" 
+                disabled={isYouTubeMode}
+                className={isYouTubeMode ? "opacity-50 cursor-not-allowed" : ""}
+              >
+                Generate Tests
+              </SelectItem>
+              <SelectItem 
+                value="explain" 
+                disabled={isYouTubeMode}
+                className={isYouTubeMode ? "opacity-50 cursor-not-allowed" : ""}
+              >
+                Explain
+              </SelectItem>
               <SelectItem value="transcript">Transcript</SelectItem>
             </SelectContent>
           </Select>
