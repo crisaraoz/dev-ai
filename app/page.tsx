@@ -428,6 +428,21 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
   };
 
   const handleDownload = () => {
+    // Si es una transcripción, usar siempre .txt
+    if (activeTab === "transcript") {
+      const blob = new Blob([result], { type: "text/plain" });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      const fileName = videoUrl ? 
+        `transcription_${new Date().toISOString().slice(0, 10)}` : 
+        "transcription";
+      a.download = `${fileName}.txt`;
+      a.click();
+      return;
+    }
+
+    // Para otros tipos de contenido, seguir con la lógica existente
     // Determinar la extensión del archivo según el lenguaje seleccionado
     let fileExtension = ".txt";
     switch (language) {

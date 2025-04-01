@@ -274,6 +274,46 @@ const ResultsArea: React.FC<ResultsAreaProps> = ({
         50% { opacity: 1; }
         100% { opacity: 0.7; }
       }
+
+      /* Estilos para botones deshabilitados */
+      button[disabled], 
+      .disabled-button,
+      .disabled-button * {
+        cursor: not-allowed !important;
+        position: relative;
+        opacity: 0.6;
+      }
+
+      /* Aplicar el cursor a todos los elementos dentro del botón deshabilitado */
+      .disabled-button svg,
+      button[disabled] svg {
+        pointer-events: none;
+      }
+
+      /* Añadir un borde rojo tenue cuando se hace hover */
+      .disabled-button:hover {
+        border-color: #ff0000 !important;
+        box-shadow: 0 0 0 1px rgba(255, 0, 0, 0.3) !important;
+      }
+
+      /* El icono de prohibido */
+      button[disabled]:hover::after,
+      .disabled-button:hover::after {
+        content: '⛔';
+        position: absolute;
+        top: -25px;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: rgba(0, 0, 0, 0.8);
+        color: white;
+        border-radius: 4px;
+        padding: 3px 6px;
+        font-size: 16px;
+        white-space: nowrap;
+        z-index: 1000;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        border: 1px solid rgba(255, 0, 0, 0.5);
+      }
     `;
     document.head.appendChild(style);
     
@@ -331,16 +371,16 @@ const ResultsArea: React.FC<ResultsAreaProps> = ({
       {renderContent()}
 
       <div className="flex gap-2 justify-end">
-        <Button variant="outline" size="icon" onClick={handleCopy} disabled={isLoading || !result}>
+        <Button variant="outline" size="icon" onClick={handleCopy} disabled={isLoading || !result} title="Copiar contenido">
           <Copy className="h-4 w-4" />
         </Button>
-        <Button variant="outline" size="icon" onClick={handleDownload} disabled={isLoading || !result}>
+        <Button variant="outline" size="icon" onClick={handleDownload} disabled={isLoading || !result} title="Descargar contenido">
           <Download className="h-4 w-4" />
         </Button>
-        <Button variant="outline" size="icon" disabled={isLoading || !result}>
+        <Button variant="outline" size="icon" disabled={true} title="Función no disponible actualmente" className="disabled-button" style={{cursor: 'not-allowed'}}>
           <Share2 className="h-4 w-4" />
         </Button>
-        <Button variant="outline" size="icon" disabled={isLoading || !result}>
+        <Button variant="outline" size="icon" disabled={true} title="Función no disponible actualmente" className="disabled-button" style={{cursor: 'not-allowed'}}>
           <History className="h-4 w-4" />
         </Button>
       </div>
