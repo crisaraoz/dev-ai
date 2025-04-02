@@ -24,6 +24,13 @@ export default function YoutubeResume({ initialTranscription = "" }: YoutubeResu
     return text.replace(/^\d{2}:\d{2}\s/gm, '');
   };
 
+  // Efecto para actualizar cuando cambia la transcripción inicial
+  useEffect(() => {
+    if (initialTranscription !== transcription) {
+      setTranscription(initialTranscription);
+    }
+  }, [initialTranscription]);
+
   // Efecto para limpiar automáticamente la transcripción cuando cambia
   useEffect(() => {
     if (transcription) {
@@ -79,17 +86,17 @@ export default function YoutubeResume({ initialTranscription = "" }: YoutubeResu
         <div className="flex justify-between items-center w-full">
           <CardTitle className="text-xl tracking-tight flex items-center">
             <FileText className="h-5 w-5 mr-2" />
-            Resumir Video de YouTube
+            Summarize YouTube Video
           </CardTitle>
         </div>
         <CardDescription>
-          Obtén un resumen generado por IA del contenido del video
+          Get an AI-generated summary of the video content
         </CardDescription>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
           <Textarea 
-            placeholder="Pega aquí la transcripción del video..." 
+            placeholder="Paste the video transcription here..." 
             className="min-h-[150px]"
             value={displayedTranscription}
             onChange={(e) => {
@@ -114,7 +121,7 @@ export default function YoutubeResume({ initialTranscription = "" }: YoutubeResu
               ) : (
                 <>
                   <RefreshCw className="h-4 w-4" />
-                  <span>Resumir este texto</span>
+                  <span>Summarize this text</span>
                 </>
               )}
             </Button>
@@ -128,7 +135,7 @@ export default function YoutubeResume({ initialTranscription = "" }: YoutubeResu
 
           {summary && (
             <div className="p-4 bg-muted rounded-md space-y-2">
-              <h3 className="font-medium">Resumen del Video:</h3>
+              <h3 className="font-medium">Video Summary:</h3>
               <div className="text-sm whitespace-pre-line">
                 {summary}
               </div>

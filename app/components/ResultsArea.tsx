@@ -149,7 +149,7 @@ const ResultsArea: React.FC<ResultsAreaProps> = ({
             <CardHeader className="flex pb-0">
               <div className="flex justify-between items-center w-full">
                 <CardTitle className="text-xl tracking-tight">
-                  Transcripción
+                  Video Transcript
                 </CardTitle>
                 
                 {setAutoScroll && (
