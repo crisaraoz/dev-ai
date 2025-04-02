@@ -187,7 +187,7 @@ const ResultsArea: React.FC<ResultsAreaProps> = ({
                     <p className="text-muted-foreground">Obteniendo transcripción...</p>
                   </div>
                 ) : result ? (
-                  <div className="space-y-1 font-mono text-sm">
+                  <div className="space-y-0.5 text-sm">
                     {result.split('\n').map((line, i) => {
                       // Verificar si la línea tiene un formato de timestamp (MM:SS)
                       const hasTimestamp = line.match(/^\d{2}:\d{2}/);
@@ -195,19 +195,19 @@ const ResultsArea: React.FC<ResultsAreaProps> = ({
                       return (
                         <div 
                           key={i} 
-                          className={`${hasTimestamp ? 'flex items-start' : ''} py-0.5 px-1 rounded hover:bg-accent/30 transition-colors`}
+                          className={`${hasTimestamp ? 'flex items-start' : ''} py-1 px-1 rounded hover:bg-accent/30 transition-colors`}
                           id={`transcript-line-${i}`}
                         >
                           {hasTimestamp ? (
                             <>
                               <span 
-                                className="inline-block mr-2 text-primary-foreground bg-primary px-1 rounded w-[50px] text-center font-semibold cursor-pointer hover:bg-primary-foreground hover:text-primary transition-colors"
+                                className="inline-block mr-2 text-primary-foreground bg-primary px-1 rounded w-[50px] min-w-[50px] text-center font-semibold cursor-pointer hover:bg-primary-foreground hover:text-primary transition-colors text-xs whitespace-nowrap"
                                 onClick={() => onTimeClick && onTimeClick(line.substring(0, 5))}
                                 title="Ir a este momento del video"
                               >
                                 {line.substring(0, 5)}
                               </span>
-                              <span className="flex-grow">{line.substring(6)}</span>
+                              <span className="flex-grow text-sm align-middle">{line.substring(6)}</span>
                             </>
                           ) : (
                             line
