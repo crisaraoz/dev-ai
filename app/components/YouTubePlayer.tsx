@@ -5,9 +5,10 @@ interface YouTubePlayerProps {
   onTimeUpdate?: (currentTime: number) => void;
   seekTo?: number; // Nueva prop para controlar la posición del video
   isProcessing?: boolean; // Nueva prop para indicar si se está procesando el video
+  onYouTubeUrl?: (url: string) => void;
 }
 
-const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl, onTimeUpdate, seekTo, isProcessing }) => {
+const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl, onTimeUpdate, seekTo, isProcessing, onYouTubeUrl }) => {
   const playerRef = useRef<any>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const [playerReady, setPlayerReady] = useState<boolean>(false);
@@ -276,11 +277,40 @@ const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl, onTimeUpdate, s
   if (!videoUrl) {
     return (
       <div className="flex flex-col items-center justify-center h-full text-center p-8">
-        <div className="text-6xl mb-4">{'</>'}</div>
+        <div className="text-6xl mb-4 hover:text-primary transition-colors cursor-pointer" 
+             onClick={() => document.querySelector('textarea')?.focus()}>
+          {'</>'}
+        </div>
         <h2 className="text-2xl font-semibold mb-2">Welcome to AI Dev Tools</h2>
-        <p className="text-muted-foreground">
-          Write your code or question to start the conversation, or drag & drop a YouTube URL here for transcription.
-        </p>
+        <div className="flex flex-col gap-4 items-center max-w-lg">
+          <button 
+            onClick={() => document.querySelector('textarea')?.focus()}
+            className="text-muted-foreground hover:text-primary transition-colors p-4 rounded-lg border-2 border-dashed hover:border-primary w-full"
+          >
+            Write your code or question to start the conversation
+          </button>
+          <div className="relative w-full">
+            <div 
+              className="text-muted-foreground hover:text-primary transition-colors p-4 rounded-lg border-2 border-dashed hover:border-primary cursor-pointer"
+              onDragOver={(e) => {
+                e.preventDefault();
+                e.currentTarget.classList.add('border-primary', 'text-primary');
+              }}
+              onDragLeave={(e) => {
+                e.currentTarget.classList.remove('border-primary', 'text-primary');
+              }}
+              onDrop={(e) => {
+                e.preventDefault();
+                const text = e.dataTransfer.getData('text');
+                if (text.match(/^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+$/)) {
+                  onYouTubeUrl?.(text);
+                }
+              }}
+            >
+              Drag & drop a YouTube URL here for transcription
+            </div>
+          </div>
+        </div>
       </div>
     );
   }

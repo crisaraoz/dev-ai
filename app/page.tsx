@@ -59,6 +59,8 @@ export default function Home() {
   const [userScrolling, setUserScrolling] = useState<boolean>(false);
   const scrollTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [showYoutubeResume, setShowYoutubeResume] = useState(false);
+  const [youtubeResumePosition, setYoutubeResumePosition] = useState({ x: 0, y: 0 });
+  const [youtubeResumeSize, setYoutubeResumeSize] = useState({ width: 600, height: 250 });
 
   // Asegurarse de que la UI se renderiza correctamente después de cargar
   useEffect(() => {
@@ -670,6 +672,7 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
                   onTimeUpdate={handleVideoTimeUpdate}
                   seekTo={videoSeekTime}
                   isProcessing={isLoading}
+                  onYouTubeUrl={handleYouTubeUrl}
                 />
               </div>
               
@@ -685,7 +688,7 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
             </div>
 
             {/* Results Area Component */}
-            <div className={`${isFullscreen ? 'w-full' : ''}`}>
+            <div className={`${isFullscreen ? 'w-full' : ''} space-y-4 results-container`}>
               <ResultsArea 
                 activeTab={activeTab} 
                 setActiveTab={setActiveTab}
@@ -706,10 +709,16 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
                 setAutoScroll={setAutoScroll}
               />
               
-              {/* Nuevo componente para resumir videos de YouTube */}
+              {/* Componente para resumir videos de YouTube */}
               {showYoutubeResume && videoUrl && (
-                <div className="mt-4">
-                  <YoutubeResume initialTranscription={result} />
+                <div className="relative w-full">
+                  <YoutubeResume 
+                    initialTranscription={result}
+                    defaultPosition={youtubeResumePosition}
+                    defaultSize={youtubeResumeSize}
+                    onPositionChange={setYoutubeResumePosition}
+                    onSizeChange={setYoutubeResumeSize}
+                  />
                 </div>
               )}
             </div>
