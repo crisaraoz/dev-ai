@@ -58,7 +58,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   return (
     <>
       {/* Sidebar */}
-      <div className={`fixed inset-y-0 left-0 bg-gray-50 dark:bg-gray-900 w-64 shadow-lg transform transition-transform duration-300 ease-in-out z-30 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+      <div className={`fixed inset-y-0 left-0 bg-gray-50 dark:bg-black w-64 shadow-lg transform transition-transform duration-300 ease-in-out z-30 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="p-3 pt-12">
           <Button 
             variant="outline" 

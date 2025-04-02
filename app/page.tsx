@@ -13,6 +13,7 @@ import ResultsArea from "./components/ResultsArea";
 import LanguageSelector from "./components/LanguageSelector";
 import Footer from "./components/Footer";
 import YouTubePlayer from "./components/YouTubePlayer";
+import YoutubeResume from "../components/YoutubeResume";
 
 export default function Home() {
   const [code, setCode] = useState("");
@@ -57,6 +58,7 @@ export default function Home() {
   const [previousScrollPosition, setPreviousScrollPosition] = useState<number>(0);
   const [userScrolling, setUserScrolling] = useState<boolean>(false);
   const scrollTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const [showYoutubeResume, setShowYoutubeResume] = useState(false);
 
   // Asegurarse de que la UI se renderiza correctamente después de cargar
   useEffect(() => {
@@ -513,15 +515,46 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
     
     setConversations([newConversation, ...conversations]);
     setActiveConversation(newId);
+    
+    // Limpiar todos los estados primero
     setMessages([]);
     setCode("");
-    setResult("");
+    
+    // Importante: Limpiar primero el URL del video para que los componentes se desmonte correctamente
+    setVideoUrl(null);
+    
+    // Esperar un pequeño tiempo para asegurarse que los efectos relacionados al video se completen
+    setTimeout(() => {
+      setResult("");
+      setSelectedMessage(null);
+      setLanguage("javascript"); // Valor predeterminado
+      setExplanationLevel("mid"); // Valor predeterminado
+      setActiveTab("refactor"); // Restablecer la pestaña activa
+      setCurrentVideoTime(0); // Reiniciar el tiempo del video
+      setVideoSeekTime(undefined); // Reiniciar el tiempo de búsqueda
+      setIsLoading(false); // Asegurarse de que no se muestre el indicador de carga
+    }, 50);
   };
 
   const selectConversation = (id: string) => {
     setActiveConversation(id);
+    
+    // Limpiar todos los estados primero
     setMessages([]);
-    setResult("");
+    setCode("");
+    
+    // Importante: Limpiar primero el URL del video para que los componentes se desmonte correctamente
+    setVideoUrl(null);
+    
+    // Esperar un pequeño tiempo para asegurarse que los efectos relacionados al video se completen
+    setTimeout(() => {
+      setResult("");
+      setSelectedMessage(null);
+      setActiveTab("refactor");
+      setCurrentVideoTime(0);
+      setVideoSeekTime(undefined);
+      setIsLoading(false);
+    }, 50);
   };
 
   const deleteConversation = (id: string) => {
@@ -569,6 +602,13 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
     } finally {
       setIsLoading(false);
     }
+
+    // Si es una URL de YouTube válida, también ofrecemos la opción de resumir
+    if (url.includes('youtube.com') || url.includes('youtu.be')) {
+      setShowYoutubeResume(true);
+    } else {
+      setShowYoutubeResume(false);
+    }
   };
 
   const handleVideoTimeUpdate = (time: number) => {
@@ -598,10 +638,10 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
     <div className="min-h-screen bg-background flex flex-col">
       {/* Sidebar Component */}
       <Sidebar 
-        sidebarOpen={sidebarOpen}
-        toggleSidebar={toggleSidebar}
-        conversations={conversations}
-        activeConversation={activeConversation}
+        sidebarOpen={sidebarOpen} 
+        toggleSidebar={toggleSidebar} 
+        conversations={conversations} 
+        activeConversation={activeConversation} 
         startNewConversation={startNewConversation}
         selectConversation={selectConversation}
         deleteConversation={deleteConversation}
@@ -616,10 +656,11 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
             <div className={`space-y-4 ${isFullscreen ? 'hidden' : ''}`}>
               {/* Language Selector Component */}
               <LanguageSelector 
-                language={language}
+                language={language} 
                 setLanguage={setLanguage}
                 explanationLevel={explanationLevel}
                 setExplanationLevel={setExplanationLevel}
+                isDisabled={activeTab === "transcript" || !!videoUrl}
               />
               
               {/* YouTube Player / Welcome Screen */}
@@ -628,6 +669,7 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
                   videoUrl={videoUrl} 
                   onTimeUpdate={handleVideoTimeUpdate}
                   seekTo={videoSeekTime}
+                  isProcessing={isLoading}
                 />
               </div>
               
@@ -645,7 +687,7 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
             {/* Results Area Component */}
             <div className={`${isFullscreen ? 'w-full' : ''}`}>
               <ResultsArea 
-                activeTab={activeTab}
+                activeTab={activeTab} 
                 setActiveTab={setActiveTab}
                 result={result}
                 language={language}
@@ -663,6 +705,13 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
                 autoScroll={autoScroll}
                 setAutoScroll={setAutoScroll}
               />
+              
+              {/* Nuevo componente para resumir videos de YouTube */}
+              {showYoutubeResume && videoUrl && (
+                <div className="mt-4">
+                  <YoutubeResume initialTranscription={result} />
+                </div>
+              )}
             </div>
           </div>
         </main>
