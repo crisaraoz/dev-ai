@@ -514,33 +514,45 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
     setConversations([newConversation, ...conversations]);
     setActiveConversation(newId);
     
-    // Restablecer todos los valores para la nueva conversación
+    // Limpiar todos los estados primero
     setMessages([]);
     setCode("");
-    setResult("");
-    setSelectedMessage(null);
-    setLanguage("javascript"); // Valor predeterminado
-    setExplanationLevel("mid"); // Valor predeterminado
-    setActiveTab("refactor"); // Restablecer la pestaña activa
-    setVideoUrl(null); // Eliminar el video de YouTube si hay uno
-    setCurrentVideoTime(0); // Reiniciar el tiempo del video
-    setVideoSeekTime(undefined); // Reiniciar el tiempo de búsqueda
-    setIsLoading(false); // Asegurarse de que no se muestre el indicador de carga
+    
+    // Importante: Limpiar primero el URL del video para que los componentes se desmonte correctamente
+    setVideoUrl(null);
+    
+    // Esperar un pequeño tiempo para asegurarse que los efectos relacionados al video se completen
+    setTimeout(() => {
+      setResult("");
+      setSelectedMessage(null);
+      setLanguage("javascript"); // Valor predeterminado
+      setExplanationLevel("mid"); // Valor predeterminado
+      setActiveTab("refactor"); // Restablecer la pestaña activa
+      setCurrentVideoTime(0); // Reiniciar el tiempo del video
+      setVideoSeekTime(undefined); // Reiniciar el tiempo de búsqueda
+      setIsLoading(false); // Asegurarse de que no se muestre el indicador de carga
+    }, 50);
   };
 
   const selectConversation = (id: string) => {
     setActiveConversation(id);
     
-    // Restablecer valores al seleccionar una conversación
+    // Limpiar todos los estados primero
     setMessages([]);
-    setResult("");
     setCode("");
-    setSelectedMessage(null);
-    setActiveTab("refactor");
+    
+    // Importante: Limpiar primero el URL del video para que los componentes se desmonte correctamente
     setVideoUrl(null);
-    setCurrentVideoTime(0);
-    setVideoSeekTime(undefined);
-    setIsLoading(false);
+    
+    // Esperar un pequeño tiempo para asegurarse que los efectos relacionados al video se completen
+    setTimeout(() => {
+      setResult("");
+      setSelectedMessage(null);
+      setActiveTab("refactor");
+      setCurrentVideoTime(0);
+      setVideoSeekTime(undefined);
+      setIsLoading(false);
+    }, 50);
   };
 
   const deleteConversation = (id: string) => {
@@ -639,6 +651,7 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
                 setLanguage={setLanguage}
                 explanationLevel={explanationLevel}
                 setExplanationLevel={setExplanationLevel}
+                isDisabled={activeTab === "transcript" || !!videoUrl}
               />
               
               {/* YouTube Player / Welcome Screen */}
@@ -647,6 +660,7 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
                   videoUrl={videoUrl} 
                   onTimeUpdate={handleVideoTimeUpdate}
                   seekTo={videoSeekTime}
+                  isProcessing={isLoading}
                 />
               </div>
               

@@ -4,16 +4,25 @@ interface YouTubePlayerProps {
   videoUrl: string | null;
   onTimeUpdate?: (currentTime: number) => void;
   seekTo?: number; // Nueva prop para controlar la posición del video
+  isProcessing?: boolean; // Nueva prop para indicar si se está procesando el video
 }
 
-const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl, onTimeUpdate, seekTo }) => {
+const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl, onTimeUpdate, seekTo, isProcessing }) => {
   const playerRef = useRef<any>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const [playerReady, setPlayerReady] = useState<boolean>(false);
   const [currentVideoId, setCurrentVideoId] = useState<string | null>(null);
   const previousSeekRef = useRef<number | undefined>(undefined);
   const updateIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   
+  // Sincronizar el estado de carga externo con el interno
+  useEffect(() => {
+    if (isProcessing !== undefined) {
+      setIsLoading(isProcessing);
+    }
+  }, [isProcessing]);
+
   // Extract video ID from URL
   const getVideoId = (url: string) => {
     const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
@@ -47,13 +56,30 @@ const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl, onTimeUpdate, s
 
   // Efecto para detectar cambios en la URL del video
   useEffect(() => {
-    if (!videoUrl) return;
+    // Cuando videoUrl es null, limpiamos todo el estado
+    if (!videoUrl) {
+      setCurrentVideoId(null);
+      setPlayerReady(false);
+      setIsLoading(false);
+      
+      // Destruir el reproductor si existe
+      if (playerRef.current) {
+        try {
+          playerRef.current.destroy();
+          playerRef.current = null;
+        } catch (error) {
+          console.error("Error al destruir el reproductor:", error);
+        }
+      }
+      return;
+    }
     
     const newVideoId = getVideoId(videoUrl);
     if (newVideoId !== currentVideoId) {
       console.log(`Video URL changed from ${currentVideoId} to ${newVideoId}`);
       setCurrentVideoId(newVideoId);
       setPlayerReady(false);
+      setIsLoading(true);
       
       // Si el reproductor ya existe, destruirlo
       if (playerRef.current) {
@@ -113,6 +139,7 @@ const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl, onTimeUpdate, s
             onReady: (event: any) => {
               console.log("Reproductor listo");
               setPlayerReady(true);
+              setIsLoading(false);
               
               // Si hay un seekTo pendiente, aplicarlo ahora
               if (seekTo !== undefined) {
@@ -270,7 +297,14 @@ const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl, onTimeUpdate, s
 
   return (
     <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
-      <div id="youtube-player" className="absolute top-0 left-0 w-full h-full"></div>
+      {isLoading ? (
+        <div className="absolute top-0 left-0 w-full h-full flex flex-col items-center justify-center bg-background">
+          <div className="animate-spin h-12 w-12 border-4 border-t-primary border-r-transparent border-b-primary border-l-transparent rounded-full mb-4"></div>
+          <p className="text-muted-foreground">Cargando video...</p>
+        </div>
+      ) : (
+        <div id="youtube-player" className="absolute top-0 left-0 w-full h-full"></div>
+      )}
     </div>
   );
 };
