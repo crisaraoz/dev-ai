@@ -160,18 +160,18 @@ const ResultsArea: React.FC<ResultsAreaProps> = ({
                       console.log(`Auto-scroll cambiado a: ${!autoScroll}`);
                       setAutoScroll(!autoScroll);
                     }}
-                    className="flex items-center gap-1 text-xs font-bold"
+                    className="flex items-center justify-center gap-1 text-xs font-bold h-8 py-0"
                     title={autoScroll ? "Desactivar desplazamiento automático" : "Activar desplazamiento automático"}
                   >
                     {autoScroll ? (
                       <>
-                        <ScrollText className="h-4 w-4 mr-1 animate-pulse" />
-                        Auto-scroll <span className="text-green-400 ml-1">ON</span>
+                        <ScrollText className="h-4 w-4 mr-1 animate-pulse flex-shrink-0 relative top-[4px] align-middle" style={{transform: 'translateY(-2px)'}} />
+                        <span className="inline-flex items-center">Auto-scroll <span className="text-green-400 ml-1">ON</span></span>
                       </>
                     ) : (
                       <>
-                        <Scroll className="h-4 w-4 mr-1" />
-                        Auto-scroll <span className="text-red-400 ml-1">OFF</span>
+                        <Scroll className="h-4 w-4 mr-1 flex-shrink-0 relative top-[4px] align-middle" style={{transform: 'translateY(-2px)'}} />
+                        <span className="inline-flex items-center">Auto-scroll <span className="text-red-400 ml-1">OFF</span></span>
                       </>
                     )}
                   </Button>
