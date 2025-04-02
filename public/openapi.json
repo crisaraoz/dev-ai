@@ -1,0 +1,221 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "AI Dev Tools API",
+    "description": "API para transcripción y resumen de videos de YouTube",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000",
+      "description": "Local development server"
+    }
+  ],
+  "paths": {
+    "/api/v1/transcription/youtube": {
+      "post": {
+        "summary": "Transcribe YouTube Video",
+        "description": "Obtiene la transcripción de un video de YouTube a partir de su URL",
+        "tags": ["transcription"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TranscriptionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TranscriptionResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/summary/youtube": {
+      "post": {
+        "summary": "Summarize YouTube Video",
+        "description": "Genera un resumen del contenido de un video de YouTube a partir de su URL",
+        "tags": ["summary"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SummaryRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SummaryResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "TranscriptionRequest": {
+        "type": "object",
+        "required": ["url"],
+        "properties": {
+          "url": {
+            "type": "string",
+            "description": "URL del video de YouTube",
+            "example": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+          }
+        }
+      },
+      "TranscriptionResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "description": "Indica si la solicitud fue exitosa"
+          },
+          "videoId": {
+            "type": "string",
+            "description": "ID del video de YouTube"
+          },
+          "transcript": {
+            "type": "string",
+            "description": "Transcripción del video"
+          },
+          "metadata": {
+            "type": "object",
+            "properties": {
+              "url": {
+                "type": "string",
+                "description": "URL del video"
+              },
+              "timestamp": {
+                "type": "string",
+                "description": "Fecha y hora de la solicitud"
+              },
+              "language": {
+                "type": "string",
+                "description": "Idioma detectado del video"
+              }
+            }
+          }
+        }
+      },
+      "SummaryRequest": {
+        "type": "object",
+        "required": ["url"],
+        "properties": {
+          "url": {
+            "type": "string",
+            "description": "URL del video de YouTube",
+            "example": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+          }
+        }
+      },
+      "SummaryResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "description": "Indica si la solicitud fue exitosa"
+          },
+          "videoId": {
+            "type": "string",
+            "description": "ID del video de YouTube"
+          },
+          "summary": {
+            "type": "string",
+            "description": "Resumen del contenido del video"
+          },
+          "metadata": {
+            "type": "object",
+            "properties": {
+              "url": {
+                "type": "string",
+                "description": "URL del video"
+              },
+              "timestamp": {
+                "type": "string",
+                "description": "Fecha y hora de la solicitud"
+              },
+              "transcriptLength": {
+                "type": "number",
+                "description": "Longitud de la transcripción original"
+              }
+            }
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "description": "Mensaje de error"
+          },
+          "message": {
+            "type": "string",
+            "description": "Detalles adicionales del error"
+          }
+        }
+      }
+    }
+  }
+} 

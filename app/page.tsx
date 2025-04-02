@@ -13,6 +13,7 @@ import ResultsArea from "./components/ResultsArea";
 import LanguageSelector from "./components/LanguageSelector";
 import Footer from "./components/Footer";
 import YouTubePlayer from "./components/YouTubePlayer";
+import YoutubeResume from "../components/YoutubeResume";
 
 export default function Home() {
   const [code, setCode] = useState("");
@@ -57,6 +58,7 @@ export default function Home() {
   const [previousScrollPosition, setPreviousScrollPosition] = useState<number>(0);
   const [userScrolling, setUserScrolling] = useState<boolean>(false);
   const scrollTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const [showYoutubeResume, setShowYoutubeResume] = useState(false);
 
   // Asegurarse de que la UI se renderiza correctamente después de cargar
   useEffect(() => {
@@ -600,6 +602,13 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
     } finally {
       setIsLoading(false);
     }
+
+    // Si es una URL de YouTube válida, también ofrecemos la opción de resumir
+    if (url.includes('youtube.com') || url.includes('youtu.be')) {
+      setShowYoutubeResume(true);
+    } else {
+      setShowYoutubeResume(false);
+    }
   };
 
   const handleVideoTimeUpdate = (time: number) => {
@@ -629,10 +638,10 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
     <div className="min-h-screen bg-background flex flex-col">
       {/* Sidebar Component */}
       <Sidebar 
-        sidebarOpen={sidebarOpen}
-        toggleSidebar={toggleSidebar}
-        conversations={conversations}
-        activeConversation={activeConversation}
+        sidebarOpen={sidebarOpen} 
+        toggleSidebar={toggleSidebar} 
+        conversations={conversations} 
+        activeConversation={activeConversation} 
         startNewConversation={startNewConversation}
         selectConversation={selectConversation}
         deleteConversation={deleteConversation}
@@ -647,7 +656,7 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
             <div className={`space-y-4 ${isFullscreen ? 'hidden' : ''}`}>
               {/* Language Selector Component */}
               <LanguageSelector 
-                language={language}
+                language={language} 
                 setLanguage={setLanguage}
                 explanationLevel={explanationLevel}
                 setExplanationLevel={setExplanationLevel}
@@ -678,7 +687,7 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
             {/* Results Area Component */}
             <div className={`${isFullscreen ? 'w-full' : ''}`}>
               <ResultsArea 
-                activeTab={activeTab}
+                activeTab={activeTab} 
                 setActiveTab={setActiveTab}
                 result={result}
                 language={language}
@@ -696,6 +705,13 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
                 autoScroll={autoScroll}
                 setAutoScroll={setAutoScroll}
               />
+              
+              {/* Nuevo componente para resumir videos de YouTube */}
+              {showYoutubeResume && videoUrl && (
+                <div className="mt-4">
+                  <YoutubeResume initialTranscription={result} />
+                </div>
+              )}
             </div>
           </div>
         </main>

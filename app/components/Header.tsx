@@ -1,6 +1,7 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { Code2, Sun, Moon } from "lucide-react";
+import { Code2, Sun, Moon, BookOpen } from "lucide-react";
+import Link from "next/link";
 
 interface HeaderProps {
   theme: string | undefined;
@@ -15,13 +16,26 @@ const Header: React.FC<HeaderProps> = ({ theme, setTheme }) => {
           <Code2 className="h-6 w-6" />
           AI Dev Tools
         </h1>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-        >
-          {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-        </Button>
+        <div className="flex items-center gap-2">
+          {/* <Link href="/docs" passHref>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="flex items-center gap-1"
+              title="API Documentation"
+            >
+              <BookOpen className="h-4 w-4" />
+              <span className="hidden md:inline">API Docs</span>
+            </Button>
+          </Link> */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+          >
+            {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+          </Button>
+        </div>
       </div>
     </header>
   );
