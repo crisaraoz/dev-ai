@@ -201,7 +201,7 @@ const ResultsArea: React.FC<ResultsAreaProps> = ({
                           {hasTimestamp ? (
                             <>
                               <span 
-                                className="inline-block mr-2 text-primary-foreground bg-primary px-1 rounded min-w-[40px] text-center font-semibold cursor-pointer hover:bg-primary-foreground hover:text-primary transition-colors"
+                                className="inline-block mr-2 text-primary-foreground bg-primary px-1 rounded w-[50px] text-center font-semibold cursor-pointer hover:bg-primary-foreground hover:text-primary transition-colors"
                                 onClick={() => onTimeClick && onTimeClick(line.substring(0, 5))}
                                 title="Ir a este momento del video"
                               >
