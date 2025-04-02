@@ -513,15 +513,34 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
     
     setConversations([newConversation, ...conversations]);
     setActiveConversation(newId);
+    
+    // Restablecer todos los valores para la nueva conversación
     setMessages([]);
     setCode("");
     setResult("");
+    setSelectedMessage(null);
+    setLanguage("javascript"); // Valor predeterminado
+    setExplanationLevel("mid"); // Valor predeterminado
+    setActiveTab("refactor"); // Restablecer la pestaña activa
+    setVideoUrl(null); // Eliminar el video de YouTube si hay uno
+    setCurrentVideoTime(0); // Reiniciar el tiempo del video
+    setVideoSeekTime(undefined); // Reiniciar el tiempo de búsqueda
+    setIsLoading(false); // Asegurarse de que no se muestre el indicador de carga
   };
 
   const selectConversation = (id: string) => {
     setActiveConversation(id);
+    
+    // Restablecer valores al seleccionar una conversación
     setMessages([]);
     setResult("");
+    setCode("");
+    setSelectedMessage(null);
+    setActiveTab("refactor");
+    setVideoUrl(null);
+    setCurrentVideoTime(0);
+    setVideoSeekTime(undefined);
+    setIsLoading(false);
   };
 
   const deleteConversation = (id: string) => {
