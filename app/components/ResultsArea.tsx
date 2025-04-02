@@ -160,18 +160,18 @@ const ResultsArea: React.FC<ResultsAreaProps> = ({
                       console.log(`Auto-scroll cambiado a: ${!autoScroll}`);
                       setAutoScroll(!autoScroll);
                     }}
-                    className="flex items-center gap-1 text-xs font-bold"
+                    className="flex items-center justify-center gap-1 text-xs font-bold h-8 py-0"
                     title={autoScroll ? "Desactivar desplazamiento automático" : "Activar desplazamiento automático"}
                   >
                     {autoScroll ? (
                       <>
-                        <ScrollText className="h-4 w-4 mr-1 animate-pulse" />
-                        Auto-scroll <span className="text-green-400 ml-1">ON</span>
+                        <ScrollText className="h-4 w-4 mr-1 animate-pulse flex-shrink-0 relative top-[4px] align-middle" style={{transform: 'translateY(-2px)'}} />
+                        <span className="inline-flex items-center">Auto-scroll <span className="text-green-400 ml-1">ON</span></span>
                       </>
                     ) : (
                       <>
-                        <Scroll className="h-4 w-4 mr-1" />
-                        Auto-scroll <span className="text-red-400 ml-1">OFF</span>
+                        <Scroll className="h-4 w-4 mr-1 flex-shrink-0 relative top-[4px] align-middle" style={{transform: 'translateY(-2px)'}} />
+                        <span className="inline-flex items-center">Auto-scroll <span className="text-red-400 ml-1">OFF</span></span>
                       </>
                     )}
                   </Button>
@@ -187,7 +187,7 @@ const ResultsArea: React.FC<ResultsAreaProps> = ({
                     <p className="text-muted-foreground">Obteniendo transcripción...</p>
                   </div>
                 ) : result ? (
-                  <div className="space-y-1 font-mono text-sm">
+                  <div className="space-y-0.5 text-sm">
                     {result.split('\n').map((line, i) => {
                       // Verificar si la línea tiene un formato de timestamp (MM:SS)
                       const hasTimestamp = line.match(/^\d{2}:\d{2}/);
@@ -195,19 +195,19 @@ const ResultsArea: React.FC<ResultsAreaProps> = ({
                       return (
                         <div 
                           key={i} 
-                          className={`${hasTimestamp ? 'flex items-start' : ''} py-0.5 px-1 rounded hover:bg-accent/30 transition-colors`}
+                          className={`${hasTimestamp ? 'flex items-start' : ''} py-1 px-1 rounded hover:bg-accent/30 transition-colors`}
                           id={`transcript-line-${i}`}
                         >
                           {hasTimestamp ? (
                             <>
                               <span 
-                                className="inline-block mr-2 text-primary-foreground bg-primary px-1 rounded min-w-[40px] text-center font-semibold cursor-pointer hover:bg-primary-foreground hover:text-primary transition-colors"
+                                className="inline-block mr-2 text-primary-foreground bg-primary px-1 rounded w-[50px] min-w-[50px] text-center font-semibold cursor-pointer hover:bg-primary-foreground hover:text-primary transition-colors text-xs whitespace-nowrap"
                                 onClick={() => onTimeClick && onTimeClick(line.substring(0, 5))}
                                 title="Ir a este momento del video"
                               >
                                 {line.substring(0, 5)}
                               </span>
-                              <span className="flex-grow">{line.substring(6)}</span>
+                              <span className="flex-grow text-sm align-middle">{line.substring(6)}</span>
                             </>
                           ) : (
                             line
