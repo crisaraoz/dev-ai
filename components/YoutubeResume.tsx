@@ -6,10 +6,24 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/
 import { Alert, AlertDescription } from "./ui/alert";
 import { Loader2, FileText, RefreshCw } from "lucide-react";
 import { Textarea } from "./ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 
 interface YoutubeResumeProps {
   initialTranscription?: string;
 }
+
+const languages = [
+  { value: "en", label: "English" },
+  { value: "es", label: "Spanish" },
+  { value: "fr", label: "French" },
+  { value: "de", label: "German" },
+  { value: "it", label: "Italian" },
+  { value: "pt", label: "Portuguese" },
+  { value: "zh", label: "Chinese" },
+  { value: "ja", label: "Japanese" },
+  { value: "ko", label: "Korean" },
+  { value: "ru", label: "Russian" },
+];
 
 export default function YoutubeResume({ initialTranscription = "" }: YoutubeResumeProps) {
   const [transcription, setTranscription] = useState(initialTranscription);
@@ -17,6 +31,7 @@ export default function YoutubeResume({ initialTranscription = "" }: YoutubeResu
   const [summary, setSummary] = useState("");
   const [summarizingText, setSummarizingText] = useState(false);
   const [error, setError] = useState("");
+  const [selectedLanguage, setSelectedLanguage] = useState("es");
 
   // Función para limpiar la transcripción (quitar timestamps)
   const cleanTranscription = (text: string): string => {
@@ -60,7 +75,7 @@ export default function YoutubeResume({ initialTranscription = "" }: YoutubeResu
         },
         body: JSON.stringify({
           transcription: text,
-          language_code: "es",
+          language_code: selectedLanguage,
           max_length: 500
         }),
       });
@@ -107,6 +122,22 @@ export default function YoutubeResume({ initialTranscription = "" }: YoutubeResu
           />
 
           <div className="flex space-x-2">
+            <Select
+              value={selectedLanguage}
+              onValueChange={setSelectedLanguage}
+            >
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="Select language" />
+              </SelectTrigger>
+              <SelectContent>
+                {languages.map((language) => (
+                  <SelectItem key={language.value} value={language.value}>
+                    {language.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            
             <Button 
               type="button"
               onClick={() => handleSummarizeText(displayedTranscription)}
@@ -116,7 +147,7 @@ export default function YoutubeResume({ initialTranscription = "" }: YoutubeResu
               {summarizingText ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  <span>Resumiendo...</span>
+                  <span>Summarizing...</span>
                 </>
               ) : (
                 <>
