@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Alert, AlertDescription } from "./ui/alert";
-import { Loader2, FileText, Scissors, RefreshCw } from "lucide-react";
+import { Loader2, FileText, RefreshCw } from "lucide-react";
 import { Textarea } from "./ui/textarea";
 
 interface YoutubeResumeProps {
@@ -13,7 +13,7 @@ interface YoutubeResumeProps {
 
 export default function YoutubeResume({ initialTranscription = "" }: YoutubeResumeProps) {
   const [transcription, setTranscription] = useState(initialTranscription);
-  const [cleanedTranscription, setCleanedTranscription] = useState("");
+  const [displayedTranscription, setDisplayedTranscription] = useState("");
   const [summary, setSummary] = useState("");
   const [summarizingText, setSummarizingText] = useState(false);
   const [error, setError] = useState("");
@@ -23,6 +23,15 @@ export default function YoutubeResume({ initialTranscription = "" }: YoutubeResu
     // Busca patrones como "00:06 " al inicio de cada línea y los elimina
     return text.replace(/^\d{2}:\d{2}\s/gm, '');
   };
+
+  // Efecto para limpiar automáticamente la transcripción cuando cambia
+  useEffect(() => {
+    if (transcription) {
+      setDisplayedTranscription(cleanTranscription(transcription));
+    } else {
+      setDisplayedTranscription("");
+    }
+  }, [transcription]);
 
   // Función para resumir un texto directamente
   const handleSummarizeText = async (text: string) => {
@@ -82,26 +91,20 @@ export default function YoutubeResume({ initialTranscription = "" }: YoutubeResu
           <Textarea 
             placeholder="Pega aquí la transcripción del video..." 
             className="min-h-[150px]"
-            value={transcription}
-            onChange={(e) => setTranscription(e.target.value)}
+            value={displayedTranscription}
+            onChange={(e) => {
+              setDisplayedTranscription(e.target.value);
+              // Actualizamos también la transcripción original para mantener sincronización
+              setTranscription(e.target.value);
+            }}
           />
 
           <div className="flex space-x-2">
             <Button 
-              type="button" 
-              variant="outline"
-              onClick={() => setTranscription(cleanedTranscription || cleanTranscription(transcription))}
-              className="flex items-center gap-1"
-              disabled={!transcription}
-            >
-              <Scissors className="h-4 w-4" />
-              <span>Quitar timestamps</span>
-            </Button>
-            <Button 
               type="button"
-              onClick={() => handleSummarizeText(cleanedTranscription || cleanTranscription(transcription))}
-              className="flex items-center gap-1"
-              disabled={!transcription || summarizingText}
+              onClick={() => handleSummarizeText(displayedTranscription)}
+              className="flex items-center gap-1 w-full"
+              disabled={!displayedTranscription || summarizingText}
             >
               {summarizingText ? (
                 <>
