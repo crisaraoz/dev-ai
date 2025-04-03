@@ -70,11 +70,11 @@
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
   }
-}
-
-@layer base {
   * {
     @apply border-border;
+  }
+  html {
+    font-size: 100%;
   }
   body {
     @apply bg-background text-foreground;

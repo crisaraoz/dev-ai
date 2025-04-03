@@ -15,7 +15,7 @@ import ResultsArea from "./components/ResultsArea";
 import LanguageSelector from "./components/LanguageSelector";
 import Footer from "./components/Footer";
 import YouTubePlayer from "./components/YouTubePlayer";
-import YoutubeResume from "./components/YoutubeResume";
+import YoutubeResume from "../components/YoutubeResume";
 import DocumentProcessor from "../components/DocumentProcessor";
 
 export default function Home() {
@@ -62,9 +62,8 @@ export default function Home() {
   const [previousScrollPosition, setPreviousScrollPosition] = useState<number>(0);
   const [userScrolling, setUserScrolling] = useState<boolean>(false);
   const scrollTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const [showYoutubeResume, setShowYoutubeResume] = useState(false);
-  const [youtubeResumePosition, setYoutubeResumePosition] = useState({ x: 0, y: 0 });
-  const [youtubeResumeSize, setYoutubeResumeSize] = useState({ width: 600, height: 250 });
+  const [youtubeResumePosition, setYoutubeResumePosition] = useState({ x: 20, y: 500 });
+  const [youtubeResumeSize, setYoutubeResumeSize] = useState({ width: 500, height: 250 });
   const [activeFeature, setActiveFeature] = useState<'code' | 'youtube' | 'docs'>('code');
 
   // Asegurarse de que la UI se renderiza correctamente después de cargar
@@ -590,8 +589,8 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-black">
-      <div className="flex flex-col h-screen">
+    <div className="min-h-screen bg-white dark:bg-black flex flex-col">
+      <div className="flex-1 flex flex-col">
         {/* Button for sidebar */}
         <div className="fixed top-3 left-3 z-50">
           <Button
@@ -612,11 +611,11 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
 
         <main className="flex-1 overflow-hidden">
           <div className="h-full flex">
-      <Sidebar 
+            <Sidebar 
               isOpen={sidebarOpen}
               onClose={() => setSidebarOpen(false)}
-        conversations={conversations} 
-        activeConversation={activeConversation} 
+              conversations={conversations} 
+              activeConversation={activeConversation} 
               onSelectConversation={selectConversation}
               onDeleteConversation={deleteConversation}
               onNewConversation={startNewConversation}
@@ -663,39 +662,39 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
 
               {/* Main Content Area */}
               <div className="flex-1 overflow-auto p-4 bg-white dark:bg-black">
-                <div className="max-w-7xl mx-auto">
+                <div className="max-w-7xl mx-auto pb-16">
                   {activeFeature === 'code' && (
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                       {/* Left Column */}
                       <div className="space-y-6">
                         <div className="flex items-center gap-4">
-              <LanguageSelector 
-                language={language} 
-                setLanguage={setLanguage}
-                explanationLevel={explanationLevel}
-                setExplanationLevel={setExplanationLevel}
-                isDisabled={activeTab === "transcript" || !!videoUrl}
-              />
+                          <LanguageSelector 
+                            language={language} 
+                            setLanguage={setLanguage}
+                            explanationLevel={explanationLevel}
+                            setExplanationLevel={setExplanationLevel}
+                            isDisabled={activeTab === "transcript" || !!videoUrl}
+                          />
                         </div>
                         <div className="bg-card rounded-lg overflow-hidden border">
-                <YouTubePlayer 
-                  videoUrl={videoUrl} 
-                  onTimeUpdate={handleVideoTimeUpdate}
-                  seekTo={videoSeekTime}
-                  isProcessing={isLoading}
-                  onYouTubeUrl={handleYouTubeUrl}
-                />
-              </div>
+                          <YouTubePlayer 
+                            videoUrl={videoUrl} 
+                            onTimeUpdate={handleVideoTimeUpdate}
+                            seekTo={videoSeekTime}
+                            isProcessing={isLoading}
+                            onYouTubeUrl={handleYouTubeUrl}
+                          />
+                        </div>
                         <InputArea 
                           code={code}
                           setCode={setCode}
                           handleProcess={handleProcess}
                           selectedMessage={selectedMessage}
                           isLoading={isLoading}
-                  onYouTubeUrl={handleYouTubeUrl}
-                />
-              </div>
-              
+                          onYouTubeUrl={handleYouTubeUrl}
+                        />
+                      </div>
+                      
                       {/* Right Column */}
                       <div className="space-y-4">
                         <div className="flex items-center justify-between">
@@ -721,176 +720,186 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
                   )}
 
                   {activeFeature === 'youtube' && (
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                      {/* Left Column */}
-                      <div className="space-y-6">
-                        
-                        {videoUrl ? (
-                          <div className="bg-card rounded-lg overflow-hidden border">
-                            <YouTubePlayer
-                              videoUrl={videoUrl}
-                              onTimeUpdate={handleVideoTimeUpdate}
-                              seekTo={videoSeekTime}
-                              isProcessing={isLoading}
-                              onYouTubeUrl={handleYouTubeUrl}
-                            />
-                          </div>
-                        ) : (
-                          <div className="bg-white dark:bg-black rounded-lg flex flex-col items-center justify-center h-[250px] p-8 border border-gray-200 dark:border-gray-800">
-                            <div className="text-4xl font-bold mb-4 text-gray-700 dark:text-gray-300">&lt;/&gt;</div>
-                            <h1 className="text-2xl font-bold mb-8 text-center text-gray-900 dark:text-white">Welcome to AI Dev Tools</h1>
-                            <div 
-                              className="w-full max-w-md bg-gray-100 dark:bg-black p-4 rounded-lg mb-4 border border-dashed border-gray-400 dark:border-gray-500 hover:border-primary transition-all duration-300 cursor-pointer"
-                              onDragOver={(e) => {
-                                e.preventDefault();
-                                e.currentTarget.classList.add('border-primary');
-                                e.currentTarget.classList.add('shadow-[0_0_10px_rgba(59,130,246,0.5)]');
-                                e.currentTarget.classList.add('bg-gray-200');
-                                e.currentTarget.classList.add('dark:bg-gray-900');
-                              }}
-                              onDragLeave={(e) => {
-                                e.preventDefault();
-                                e.currentTarget.classList.remove('border-primary');
-                                e.currentTarget.classList.remove('shadow-[0_0_10px_rgba(59,130,246,0.5)]');
-                                e.currentTarget.classList.remove('bg-gray-200');
-                                e.currentTarget.classList.remove('dark:bg-gray-900');
-                              }}
-                              onDrop={(e) => {
-                                e.preventDefault();
-                                e.currentTarget.classList.remove('border-primary');
-                                e.currentTarget.classList.remove('shadow-[0_0_10px_rgba(59,130,246,0.5)]');
-                                e.currentTarget.classList.remove('bg-gray-200');
-                                e.currentTarget.classList.remove('dark:bg-gray-900');
-                                const text = e.dataTransfer.getData('text');
-                                if (text.match(/^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+$/)) {
-                                  handleYouTubeUrl(text);
-                                }
-                              }}
-                            >
-                              <p className="text-center text-gray-800 dark:text-white">Drag & drop a YouTube URL here for transcription</p>
+                    <>
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        {/* Left Column */}
+                        <div className="space-y-6">
+                          
+                          {videoUrl ? (
+                            <div className="bg-card rounded-lg overflow-hidden border">
+                              <YouTubePlayer
+                                videoUrl={videoUrl}
+                                onTimeUpdate={handleVideoTimeUpdate}
+                                seekTo={videoSeekTime}
+                                isProcessing={isLoading}
+                                onYouTubeUrl={handleYouTubeUrl}
+                              />
+                            </div>
+                          ) : (
+                            <div className="bg-white dark:bg-black rounded-lg flex flex-col items-center justify-center h-[250px] p-8 border border-gray-200 dark:border-gray-800">
+                              <div className="text-4xl font-bold mb-4 text-gray-700 dark:text-gray-300">&lt;/&gt;</div>
+                              <h1 className="text-2xl font-bold mb-8 text-center text-gray-900 dark:text-white">Welcome to AI Dev Tools</h1>
+                              <div 
+                                className="w-full max-w-md bg-gray-100 dark:bg-black p-4 rounded-lg mb-4 border border-dashed border-gray-400 dark:border-gray-500 hover:border-primary transition-all duration-300 cursor-pointer"
+                                onDragOver={(e) => {
+                                  e.preventDefault();
+                                  e.currentTarget.classList.add('border-primary');
+                                  e.currentTarget.classList.add('shadow-[0_0_10px_rgba(59,130,246,0.5)]');
+                                  e.currentTarget.classList.add('bg-gray-200');
+                                  e.currentTarget.classList.add('dark:bg-gray-900');
+                                }}
+                                onDragLeave={(e) => {
+                                  e.preventDefault();
+                                  e.currentTarget.classList.remove('border-primary');
+                                  e.currentTarget.classList.remove('shadow-[0_0_10px_rgba(59,130,246,0.5)]');
+                                  e.currentTarget.classList.remove('bg-gray-200');
+                                  e.currentTarget.classList.remove('dark:bg-gray-900');
+                                }}
+                                onDrop={(e) => {
+                                  e.preventDefault();
+                                  e.currentTarget.classList.remove('border-primary');
+                                  e.currentTarget.classList.remove('shadow-[0_0_10px_rgba(59,130,246,0.5)]');
+                                  e.currentTarget.classList.remove('bg-gray-200');
+                                  e.currentTarget.classList.remove('dark:bg-gray-900');
+                                  const text = e.dataTransfer.getData('text');
+                                  if (text.match(/^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+$/)) {
+                                    handleYouTubeUrl(text);
+                                  }
+                                }}
+                              >
+                                <p className="text-center text-gray-800 dark:text-white">Drag & drop a YouTube URL here for transcription</p>
+                              </div>
+                            </div>
+                          )}
+                          
+                          <InputArea 
+                            code={code}
+                            setCode={setCode}
+                            handleProcess={handleProcess}
+                            selectedMessage={selectedMessage}
+                            isLoading={isLoading}
+                            onYouTubeUrl={handleYouTubeUrl}
+                          />
+                        </div>
+                
+                        {/* Right Column - Transcript y Summary */}
+                        <div className="space-y-4">
+                          <div className="flex items-center justify-between">
+                            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Video Transcript</h2>
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm text-gray-700 dark:text-gray-300">Auto-scroll</span>
+                              <button
+                                onClick={() => setAutoScroll(!autoScroll)}
+                                className={`px-2 py-1 text-xs rounded ${
+                                  autoScroll ? 'bg-blue-500 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                                }`}
+                              >
+                                {autoScroll ? 'ON' : 'OFF'}
+                              </button>
                             </div>
                           </div>
-                        )}
-                        
-                        <InputArea 
-                          code={code}
-                          setCode={setCode}
-                          handleProcess={handleProcess}
-                          selectedMessage={selectedMessage}
-                          isLoading={isLoading}
-                          onYouTubeUrl={handleYouTubeUrl}
-                        />
-                      </div>
-              
-                      {/* Right Column - Transcript y Summary */}
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Video Transcript</h2>
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm text-gray-700 dark:text-gray-300">Auto-scroll</span>
-                            <button
-                              onClick={() => setAutoScroll(!autoScroll)}
-                              className={`px-2 py-1 text-xs rounded ${
-                                autoScroll ? 'bg-blue-500 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
-                              }`}
-                            >
-                              {autoScroll ? 'ON' : 'OFF'}
-                            </button>
-                          </div>
-                        </div>
 
-                        <div className="bg-card border border-gray-200 dark:border-gray-800 rounded-lg h-[350px] overflow-auto relative">
-                          {/* Transcripción */}
-                          <div className="h-full p-4 overflow-auto transcript-scroll-area">
-                            {isLoading ? (
-                              <div className="flex items-center justify-center h-full">
-                                <div className="animate-spin h-10 w-10 border-4 border-t-primary border-r-transparent border-b-primary border-l-transparent rounded-full"></div>
-                              </div>
-                            ) : videoResult ? (
-                              <div className="space-y-1">
-                                {videoResult.split('\n').map((line, i) => (
-                                  <div 
-                                    key={i}
-                                    id={`transcript-line-${i}`}
-                                    className="py-1 px-1 rounded transition-colors"
-                                  >
-                                    {line.match(/^(\d{2}:\d{2})/) ? (
-                                      <div className="flex items-start">
-                                        <span 
-                                          className="inline-block bg-white text-black text-xs font-mono py-0.5 px-1.5 rounded mr-2 cursor-pointer hover:bg-gray-200"
-                                          onClick={() => {
-                                            const timeMatch = line.match(/^(\d{2}:\d{2})/);
-                                            if (timeMatch && timeMatch[1]) {
-                                              handleTranscriptTimeClick(timeMatch[1]);
-                                            }
-                                          }}
-                                        >
-                                          {(() => {
-                                            const match = line.match(/^(\d{2}:\d{2})/);
-                                            return match ? match[1] : "00:00";
-                                          })()}
-                                        </span>
-                                        <span>{line.replace(/^\d{2}:\d{2}\s*/, '')}</span>
-                                      </div>
-                                    ) : (
-                                      line
-                                    )}
-                                  </div>
-                                ))}
-                              </div>
-                            ) : (
-                              <div className="text-gray-500 dark:text-gray-400 text-center h-full flex items-center justify-center">
-                                Enter a YouTube URL to view the transcription
+                          <div className="bg-card border border-gray-200 dark:border-gray-800 rounded-lg h-[350px] overflow-auto relative">
+                            {/* Transcripción */}
+                            <div className="h-full p-4 overflow-auto transcript-scroll-area">
+                              {isLoading ? (
+                                <div className="flex items-center justify-center h-full">
+                                  <div className="animate-spin h-10 w-10 border-4 border-t-primary border-r-transparent border-b-primary border-l-transparent rounded-full"></div>
+                                </div>
+                              ) : videoResult ? (
+                                <div className="space-y-1">
+                                  {videoResult.split('\n').map((line, i) => (
+                                    <div 
+                                      key={i}
+                                      id={`transcript-line-${i}`}
+                                      className="py-1 px-1 rounded transition-colors"
+                                    >
+                                      {line.match(/^(\d{2}:\d{2})/) ? (
+                                        <div className="flex items-start">
+                                          <span 
+                                            className="inline-block bg-white text-black text-xs font-mono py-0.5 px-1.5 rounded mr-2 cursor-pointer hover:bg-gray-200"
+                                            onClick={() => {
+                                              const timeMatch = line.match(/^(\d{2}:\d{2})/);
+                                              if (timeMatch && timeMatch[1]) {
+                                                handleTranscriptTimeClick(timeMatch[1]);
+                                              }
+                                            }}
+                                          >
+                                            {(() => {
+                                              const match = line.match(/^(\d{2}:\d{2})/);
+                                              return match ? match[1] : "00:00";
+                                            })()}
+                                          </span>
+                                          <span>{line.replace(/^\d{2}:\d{2}\s*/, '')}</span>
+                                        </div>
+                                      ) : (
+                                        line
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : (
+                                <div className="text-gray-500 dark:text-gray-400 text-center h-full flex items-center justify-center">
+                                  Enter a YouTube URL to view the transcription
+                                </div>
+                              )}
+                            </div>
+                            
+                            {/* Botones de acción para la transcripción */}
+                            {videoResult && (
+                              <div className="absolute bottom-2 right-2 flex space-x-2 z-20">
+                                <button 
+                                  className="p-2 bg-gray-100 dark:bg-gray-800 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors shadow-md"
+                                  onClick={() => {
+                                    navigator.clipboard.writeText(videoResult);
+                                  }}
+                                  title="Copy transcription"
+                                >
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-600 dark:text-gray-300">
+                                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                                  </svg>
+                                </button>
+                                <button 
+                                  className="p-2 bg-gray-100 dark:bg-gray-800 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors shadow-md"
+                                  onClick={() => {
+                                    const blob = new Blob([videoResult], { type: "text/plain" });
+                                    const url = window.URL.createObjectURL(blob);
+                                    const a = document.createElement("a");
+                                    a.href = url;
+                                    const fileName = videoUrl ? 
+                                      `transcription_${new Date().toISOString().slice(0, 10)}` : 
+                                      "transcription";
+                                    a.download = `${fileName}.txt`;
+                                    a.click();
+                                  }}
+                                  title="Descargar transcripción"
+                                >
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-600 dark:text-gray-300">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                    <polyline points="7 10 12 15 17 10"></polyline>
+                                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                                  </svg>
+                                </button>
                               </div>
                             )}
                           </div>
-                          
-                          {/* Botones de acción para la transcripción */}
-                          {videoResult && (
-                            <div className="absolute bottom-2 right-2 flex space-x-2 z-20">
-                              <button 
-                                className="p-2 bg-gray-100 dark:bg-gray-800 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors shadow-md"
-                                onClick={() => {
-                                  navigator.clipboard.writeText(videoResult);
-                                }}
-                                title="Copy transcription"
-                              >
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-600 dark:text-gray-300">
-                                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                                </svg>
-                              </button>
-                              <button 
-                                className="p-2 bg-gray-100 dark:bg-gray-800 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors shadow-md"
-                                onClick={() => {
-                                  const blob = new Blob([videoResult], { type: "text/plain" });
-                                  const url = window.URL.createObjectURL(blob);
-                                  const a = document.createElement("a");
-                                  a.href = url;
-                                  const fileName = videoUrl ? 
-                                    `transcription_${new Date().toISOString().slice(0, 10)}` : 
-                                    "transcription";
-                                  a.download = `${fileName}.txt`;
-                                  a.click();
-                                }}
-                                title="Descargar transcripción"
-                              >
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-600 dark:text-gray-300">
-                                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                                  <polyline points="7 10 12 15 17 10"></polyline>
-                                  <line x1="12" y1="15" x2="12" y2="3"></line>
-                                </svg>
-                              </button>
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Resumen */}
-                        <div className="mt-4">
-                          <YoutubeResume videoUrl={videoUrl} transcription={videoResult} />
                         </div>
                       </div>
-                    </div>
+                      
+                      {/* Summarize component in bottom area */}
+                      {videoResult && (
+                        <div className="mt-10">
+                          <YoutubeResume 
+                            initialTranscription={videoResult} 
+                            defaultPosition={{ x: 0, y: 0 }}
+                            defaultSize={youtubeResumeSize}
+                            onPositionChange={setYoutubeResumePosition}
+                            onSizeChange={setYoutubeResumeSize}
+                          />
+                        </div>
+                      )}
+                    </>
                   )}
 
                   {activeFeature === 'docs' && (
