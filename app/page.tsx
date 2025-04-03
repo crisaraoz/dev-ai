@@ -81,6 +81,14 @@ export default function Home() {
     }
   }, [selectedMessage, messages]);
 
+  // Efecto para limpiar el video al cambiar a la pestaña de Code
+  useEffect(() => {
+    if (activeFeature === 'code') {
+      setVideoUrl(null);
+      setVideoResult("");
+    }
+  }, [activeFeature]);
+
   // Efecto para detectar cuando el usuario está haciendo scroll manualmente
   useEffect(() => {
     const handleScroll = () => {
