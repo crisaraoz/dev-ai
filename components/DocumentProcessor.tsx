@@ -211,7 +211,7 @@ export default function DocumentProcessor() {
             <Label htmlFor="url" className="text-gray-900 dark:text-gray-100">Documentation URL</Label>
             <Input
               id="url"
-              placeholder="https://ejemplo.com/docs"
+              placeholder="https://example.com/docs"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               className="bg-transparent border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100"

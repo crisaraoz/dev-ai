@@ -847,7 +847,7 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
                                   }
                                 }}
                               >
-                                <p className="text-center text-gray-800 dark:text-white">Drag & drop a YouTube URL here for transcription</p>
+                                <p className="text-center text-gray-800 dark:text-white">Drag & Drop or Copy your Youtube URL</p>
                               </div>
                             </div>
                           )}
@@ -860,6 +860,7 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
                               selectedMessage={selectedMessage}
                               isLoading={isLoading}
                               onYouTubeUrl={handleYouTubeUrl}
+                              placeholder="Drag & Drop or Copy your Youtube URL"
                             />
                           </div>
                         </div>

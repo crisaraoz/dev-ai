@@ -10,6 +10,7 @@ interface InputAreaProps {
   selectedMessage: number | null;
   isLoading: boolean;
   onYouTubeUrl?: (url: string) => void;
+  placeholder?: string;
 }
 
 const InputArea: React.FC<InputAreaProps> = ({
@@ -18,7 +19,8 @@ const InputArea: React.FC<InputAreaProps> = ({
   handleProcess,
   selectedMessage,
   isLoading,
-  onYouTubeUrl
+  onYouTubeUrl,
+  placeholder = "Write your code or question here..."
 }) => {
   const [isDragging, setIsDragging] = useState(false);
 
@@ -68,7 +70,7 @@ const InputArea: React.FC<InputAreaProps> = ({
           value={code}
           onChange={(e) => setCode(e.target.value)}
           onPaste={handlePaste}
-          placeholder="Write your code or question here..."
+          placeholder={placeholder}
           className="min-h-[60px] sm:min-h-[100px] font-mono resize-none text-sm sm:text-base"
         />
         {isDragging && (
