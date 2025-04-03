@@ -801,19 +801,16 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
                       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 h-full">
                         {/* Left Column */}
                         <div className="flex flex-col h-full">
-                          
-                          <div className="bg-white dark:bg-black rounded-lg flex flex-col border border-gray-200 dark:border-gray-800 flex-grow">
+                          <div className="bg-white dark:bg-black rounded-lg flex flex-col border border-gray-200 dark:border-gray-800 h-[520px]">
                             {videoUrl ? (
-                              <div className="flex-grow flex items-stretch">
-                                <div className="w-full flex items-center justify-center">
-                                  <YouTubePlayer
-                                    videoUrl={videoUrl}
-                                    onTimeUpdate={handleVideoTimeUpdate}
-                                    seekTo={videoSeekTime}
-                                    isProcessing={isLoading}
-                                    onYouTubeUrl={handleYouTubeUrl}
-                                  />
-                                </div>
+                              <div className="w-full h-full overflow-hidden bg-black flex items-center justify-center">
+                                <YouTubePlayer
+                                  videoUrl={videoUrl}
+                                  onTimeUpdate={handleVideoTimeUpdate}
+                                  seekTo={videoSeekTime}
+                                  isProcessing={isLoading}
+                                  onYouTubeUrl={handleYouTubeUrl}
+                                />
                               </div>
                             ) : (
                               <div className="flex-1 flex flex-col items-center justify-center py-8 px-4 sm:p-8">
@@ -856,7 +853,7 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
                             )}
                             
                             {/* Input area integrated within the same box */}
-                            <div className="p-4 border-t border-gray-200 dark:border-gray-800">
+                            <div className="p-4 border-t border-gray-200 dark:border-gray-800" style={{ flexShrink: 0 }}>
                               <InputArea 
                                 code={code}
                                 setCode={setCode}
@@ -872,7 +869,7 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
                 
                         {/* Right Column - Transcript */}
                         <div className="flex flex-col h-full">
-                          <div className="bg-white dark:bg-black border border-gray-200 dark:border-gray-800 rounded-lg shadow-lg overflow-hidden h-full">
+                          <div className="bg-white dark:bg-black border border-gray-200 dark:border-gray-800 rounded-lg shadow-lg overflow-hidden h-[520px]">
                             <div className="flex items-center justify-between p-3 border-b border-gray-200 dark:border-gray-800">
                               <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Video Transcript</h2>
                               <div className="flex items-center gap-2">
@@ -888,7 +885,7 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
                               </div>
                             </div>
 
-                            <div className="bg-gray-50 dark:bg-black relative h-[480px] lg:h-[520px]">
+                            <div className="bg-gray-50 dark:bg-black relative h-[477px]">
                               {/* Transcripción */}
                               <div className="h-full p-4 overflow-auto transcript-scroll-area">
                                 {isLoading ? (

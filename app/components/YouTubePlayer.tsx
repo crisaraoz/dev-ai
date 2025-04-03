@@ -121,29 +121,78 @@ const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl, onTimeUpdate, s
         return;
       }
       try {
-        playerRef.current = new window.YT.Player('youtube-player', {
-          height: '100%',
-          width: '100%',
+        // Reset existing player
+        if (playerRef.current) {
+          try {
+            playerRef.current.destroy();
+            playerRef.current = null;
+          } catch (error) {
+            console.error("Error destroying existing player:", error);
+          }
+        }
+        
+        // Get player container
+        const playerContainer = document.getElementById('youtube-player');
+        if (!playerContainer) {
+          console.error("Player container not found!");
+          return;
+        }
+        
+        // Clear container and prepare it
+        playerContainer.innerHTML = '';
+        
+        // Create new container for iframe
+        const wrapper = document.createElement('div');
+        wrapper.id = 'youtube-iframe-container';
+        wrapper.style.position = 'absolute';
+        wrapper.style.top = '0';
+        wrapper.style.left = '0';
+        wrapper.style.width = '100%';
+        wrapper.style.height = '100%';
+        wrapper.style.overflow = 'hidden';
+        
+        playerContainer.appendChild(wrapper);
+        
+        // Create new player with minimum config
+        playerRef.current = new window.YT.Player('youtube-iframe-container', {
           videoId: videoId,
           playerVars: {
-            autoplay: 0,
+            controls: 1,
             modestbranding: 1,
+            playsinline: 1,
             rel: 0,
-            origin: window.location.origin
+            showinfo: 0,
+            iv_load_policy: 3,
+            fs: 1,
+            enablejsapi: 1,
           },
           events: {
             onReady: (event: any) => {
               setPlayerReady(true);
               setIsLoading(false);
               
-              // Si hay un seekTo pendiente, aplicarlo ahora
               if (seekTo !== undefined) {
                 try {
                   event.target.seekTo(seekTo, true);
                   previousSeekRef.current = seekTo;
                 } catch (error) {
-                  console.error("Error al aplicar seekTo pendiente:", error);
+                  console.error("Error seeking:", error);
                 }
+              }
+              
+              // Apply custom styles to iframe after it's ready
+              const iframe = document.querySelector('#youtube-iframe-container iframe');
+              if (iframe && iframe instanceof HTMLIFrameElement) {
+                iframe.style.position = 'absolute';
+                iframe.style.top = '-1px';
+                iframe.style.left = '-1px';
+                iframe.style.width = 'calc(100% + 2px)';
+                iframe.style.height = 'calc(100% + 2px)';
+                iframe.style.border = 'none';
+                iframe.style.margin = '0';
+                iframe.style.padding = '0';
+                iframe.style.transform = 'scale(1.02)';
+                iframe.style.transformOrigin = 'center center';
               }
             },
             onStateChange: (event: any) => {
@@ -154,18 +203,16 @@ const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl, onTimeUpdate, s
               }
             },
             onError: (event: any) => {
-              console.error("Error en el reproductor de YouTube:", event.data);
+              console.error("Player error:", event.data);
             }
           }
         });
       } catch (error) {
-        console.error("Error al crear el reproductor:", error);
-        // Fallback a simulación de tiempo
+        console.error("Error creating player:", error);
         startTimeSimulation();
       }
     };
     
-    // Iniciar el proceso de creación del reproductor
     checkYTAndCreatePlayer();
   };
 
@@ -265,6 +312,42 @@ const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl, onTimeUpdate, s
     }
   };
 
+  // Effect to adjust the YouTube iframe after it's loaded
+  useEffect(() => {
+    if (playerReady && !isLoading) {
+      // Find the iframe and apply style fixes to remove black bars
+      // The selector needs to target the iframe inside the youtube-iframe-container
+      const iframe = document.querySelector('#youtube-iframe-container iframe');
+      if (iframe && iframe instanceof HTMLIFrameElement) {
+        iframe.style.display = 'block';
+        iframe.style.maxWidth = '100%';
+        iframe.style.border = 'none';
+        iframe.style.position = 'absolute';
+        iframe.style.top = '-1px'; // Move slightly up to hide top border
+        iframe.style.left = '0';
+        iframe.style.width = '100%';
+        iframe.style.height = 'calc(100% + 6px)'; // Add extra height to eliminate the bottom bar
+        iframe.style.margin = '0';
+        iframe.style.padding = '0';
+        iframe.style.lineHeight = '0';
+        iframe.style.verticalAlign = 'top';
+        iframe.style.transform = 'scale(1.01)'; // Slightly scale up to hide borders
+        iframe.style.transformOrigin = 'center center';
+        
+        // Fix parent container if needed
+        const container = iframe.parentElement;
+        if (container) {
+          container.style.lineHeight = '0';
+          container.style.fontSize = '0';
+          container.style.margin = '0';
+          container.style.padding = '0';
+          container.style.overflow = 'hidden';
+          container.style.height = '100%';
+        }
+      }
+    }
+  }, [playerReady, isLoading]);
+
   if (!videoUrl) {
     return (
       <div className="flex flex-col items-center justify-center h-full min-h-[300px] sm:min-h-[350px] md:min-h-[400px] text-center p-8">
@@ -317,14 +400,46 @@ const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl, onTimeUpdate, s
   }
 
   return (
-    <div className="relative w-full" style={{ aspectRatio: '16/9' }}>
+    <div className="relative w-full h-full overflow-hidden bg-black" style={{ paddingTop: 0 }}>
+      <style jsx global>{`
+        /* Force iframe to cover completely without any borders */
+        #youtube-iframe-container iframe {
+          position: absolute !important;
+          top: -3px !important;
+          left: -3px !important;
+          width: calc(100% + 6px) !important;
+          height: calc(100% + 6px) !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          border: 0 !important;
+          transform: scale(1.03) !important;
+          transform-origin: center center !important;
+          box-sizing: content-box !important;
+        }
+        
+        /* Hide any potential black bars */
+        #youtube-player, 
+        #youtube-iframe-container {
+          overflow: hidden !important;
+          background-color: black !important;
+          height: 100% !important;
+          width: 100% !important;
+        }
+        
+        /* Remove any bottom margin or padding */
+        .ytp-chrome-bottom {
+          bottom: -10px !important;
+        }
+      `}</style>
       {isLoading ? (
         <div className="absolute top-0 left-0 w-full h-full flex flex-col items-center justify-center bg-background">
           <div className="animate-spin h-12 w-12 border-4 border-t-primary border-r-transparent border-b-primary border-l-transparent rounded-full mb-4"></div>
           <p className="text-muted-foreground">Cargando video...</p>
         </div>
       ) : (
-        <div id="youtube-player" className="absolute top-0 left-0 w-full h-full"></div>
+        <div className="absolute top-0 left-0 w-full h-full overflow-hidden bg-black">
+          <div id="youtube-player" className="absolute top-0 left-0 w-full h-full overflow-hidden bg-black"></div>
+        </div>
       )}
     </div>
   );
