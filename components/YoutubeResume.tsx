@@ -138,85 +138,114 @@ export default function YoutubeResume({
   };
 
   return (
-    <div className="w-full">
-      <Card className="border rounded-md shadow-lg">
-        <CardHeader className="pb-2 drag-handle cursor-move bg-card">
-          <div className="flex justify-between items-center w-full">
-            <CardTitle className="text-xl tracking-tight flex items-center">
-              <FileText className="h-5 w-5 mr-2" />
-              Summarize YouTube Video
-            </CardTitle>
-          </div>
-          <CardDescription className="text-sm">
-            Get an AI-generated summary of the video content
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="p-2">
-          <div className="flex flex-col gap-2">
-            <Textarea 
-              placeholder="Paste the video transcription here..." 
-              className="resize-none w-full hidden"
-              value={displayedTranscription}
-              onChange={(e) => {
-                setDisplayedTranscription(e.target.value);
-                setTranscription(e.target.value);
-              }}
-            />
-
-            <div className="flex space-x-2">
-              <Select
-                value={selectedLanguage}
-                onValueChange={setSelectedLanguage}
-              >
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Select language" />
-                </SelectTrigger>
-                <SelectContent>
-                  {languages.map((language) => (
-                    <SelectItem key={language.value} value={language.value}>
-                      {language.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              
-              <Button 
-                type="button"
-                onClick={() => handleSummarizeText(displayedTranscription)}
-                className="flex items-center gap-1 flex-1"
-                disabled={!displayedTranscription || summarizingText}
-              >
-                {summarizingText ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    <span>Summarizing...</span>
-                  </>
-                ) : (
-                  <>
-                    <RefreshCw className="h-4 w-4" />
-                    <span>Summarize this video</span>
-                  </>
-                )}
-              </Button>
-            </div>
-
-            {error && (
-              <Alert variant="destructive">
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-
-            {summary && (
-              <div className="p-4 bg-muted rounded-md space-y-2">
-                <h3 className="font-medium">Video Summary:</h3>
-                <div className="text-sm whitespace-pre-line">
-                  {summary}
-                </div>
+    <Draggable
+      handle=".drag-handle"
+      defaultPosition={defaultPosition}
+      onStop={(e, data) => {
+        const newPosition = { x: data.x, y: data.y };
+        setPosition(newPosition);
+        onPositionChange?.(newPosition);
+      }}
+      bounds="body"
+      position={position}
+    >
+      <div className="fixed" style={{ zIndex: 1000 }}>
+        <ResizableBox
+          width={size.width}
+          height={size.height}
+          onResize={(e: React.SyntheticEvent, data: ResizeCallbackData) => {
+            const newSize = {
+              width: data.size.width,
+              height: data.size.height
+            };
+            setSize(newSize);
+            onSizeChange?.(newSize);
+          }}
+          minConstraints={[300, 200]}
+          maxConstraints={[1000, 800]}
+          resizeHandles={['se']}
+          handle={<div className="absolute bottom-0 right-0 w-4 h-4 cursor-se-resize bg-primary/20 rounded-bl" />}
+        >
+          <Card className="border rounded-md shadow-lg w-full h-full">
+            <CardHeader className="pb-2 drag-handle cursor-move bg-card">
+              <div className="flex justify-between items-center w-full">
+                <CardTitle className="text-xl tracking-tight flex items-center">
+                  <FileText className="h-5 w-5 mr-2" />
+                  Summarize YouTube Video
+                </CardTitle>
               </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+              <CardDescription className="text-sm">
+                Get an AI-generated summary of the video content
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-2 overflow-auto" style={{ height: 'calc(100% - 90px)' }}>
+              <div className="flex flex-col gap-2">
+                <Textarea 
+                  placeholder="Paste the video transcription here..." 
+                  className="resize-none w-full hidden"
+                  value={displayedTranscription}
+                  onChange={(e) => {
+                    setDisplayedTranscription(e.target.value);
+                    setTranscription(e.target.value);
+                  }}
+                />
+
+                <div className="flex space-x-2">
+                  <Select
+                    value={selectedLanguage}
+                    onValueChange={setSelectedLanguage}
+                  >
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Select language" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {languages.map((language) => (
+                        <SelectItem key={language.value} value={language.value}>
+                          {language.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  
+                  <Button 
+                    type="button"
+                    onClick={() => handleSummarizeText(displayedTranscription)}
+                    className="flex items-center gap-1 flex-1"
+                    disabled={!displayedTranscription || summarizingText}
+                  >
+                    {summarizingText ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <span>Summarizing...</span>
+                      </>
+                    ) : (
+                      <>
+                        <RefreshCw className="h-4 w-4" />
+                        <span>Summarize this video</span>
+                      </>
+                    )}
+                  </Button>
+                </div>
+
+                {error && (
+                  <Alert variant="destructive">
+                    <AlertDescription>{error}</AlertDescription>
+                  </Alert>
+                )}
+
+                {summary && (
+                  <div className="p-4 bg-muted rounded-md space-y-2">
+                    <h3 className="font-medium">Video Summary:</h3>
+                    <div className="text-sm whitespace-pre-line">
+                      {summary}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </ResizableBox>
+      </div>
+    </Draggable>
   );
 } 
