@@ -62,6 +62,7 @@ export default function Home() {
   const [autoScroll, setAutoScroll] = useState<boolean>(true);
   const [previousScrollPosition, setPreviousScrollPosition] = useState<number>(0);
   const [userScrolling, setUserScrolling] = useState<boolean>(false);
+  const [transcriptCollapsed, setTranscriptCollapsed] = useState<boolean>(false);
   const scrollTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [youtubeResumePosition, setYoutubeResumePosition] = useState({ x: 20, y: 500 });
   const [youtubeResumeSize, setYoutubeResumeSize] = useState({ width: 500, height: 250 });
@@ -869,13 +870,35 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
                 
                         {/* Right Column - Transcript */}
                         <div className="flex flex-col h-full">
-                          <div className="bg-white dark:bg-black border border-gray-200 dark:border-gray-800 rounded-lg shadow-lg overflow-hidden h-[520px]">
-                            <div className="flex items-center justify-between p-3 border-b border-gray-200 dark:border-gray-800">
-                              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Video Transcript</h2>
-                              <div className="flex items-center gap-2">
+                          <div className={`bg-white dark:bg-black border border-gray-200 dark:border-gray-800 rounded-lg shadow-lg overflow-hidden ${transcriptCollapsed ? 'h-auto' : 'h-[520px]'}`}>
+                            <div 
+                              className={`flex items-center justify-between p-3 ${transcriptCollapsed ? '' : 'border-b'} border-gray-200 dark:border-gray-800 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-900 transition-colors`}
+                              onClick={() => setTranscriptCollapsed(!transcriptCollapsed)}
+                            >
+                              <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
+                                <span>Video Transcript</span>
+                                <svg 
+                                  xmlns="http://www.w3.org/2000/svg" 
+                                  width="16" 
+                                  height="16" 
+                                  viewBox="0 0 24 24" 
+                                  fill="none" 
+                                  stroke="currentColor" 
+                                  strokeWidth="2" 
+                                  strokeLinecap="round" 
+                                  strokeLinejoin="round" 
+                                  className={`ml-2 transition-transform ${transcriptCollapsed ? 'rotate-180' : 'rotate-0'}`}
+                                >
+                                  <polyline points="6 9 12 15 18 9"></polyline>
+                                </svg>
+                              </h2>
+                              <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                                 <span className="text-sm text-gray-700 dark:text-gray-300">Auto-scroll</span>
                                 <button
-                                  onClick={() => setAutoScroll(!autoScroll)}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setAutoScroll(!autoScroll);
+                                  }}
                                   className={`px-2 py-1 text-xs rounded ${
                                     autoScroll ? 'bg-blue-500 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
                                   }`}
@@ -885,91 +908,93 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
                               </div>
                             </div>
 
-                            <div className="bg-gray-50 dark:bg-black relative h-[477px]">
-                              {/* Transcripción */}
-                              <div className="h-full p-4 overflow-auto transcript-scroll-area">
-                                {isLoading ? (
-                                  <div className="flex items-center justify-center h-full">
-                                    <div className="animate-spin h-10 w-10 border-4 border-t-primary border-r-transparent border-b-primary border-l-transparent rounded-full"></div>
-                                  </div>
-                                ) : videoResult ? (
-                                  <div className="space-y-1">
-                                    {videoResult.split('\n').map((line, i) => (
-                                      <div 
-                                        key={i}
-                                        id={`transcript-line-${i}`}
-                                        className="py-1 px-1 rounded transition-colors"
-                                      >
-                                        {line.match(/^(\d{2}:\d{2})/) ? (
-                                          <div className="flex items-start">
-                                            <span 
-                                              className="inline-block bg-white dark:bg-gray-700 text-black dark:text-white text-xs font-mono py-0.5 px-1.5 rounded mr-2 cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600"
-                                              onClick={() => {
-                                                const timeMatch = line.match(/^(\d{2}:\d{2})/);
-                                                if (timeMatch && timeMatch[1]) {
-                                                  handleTranscriptTimeClick(timeMatch[1]);
-                                                }
-                                              }}
-                                            >
-                                              {(() => {
-                                                const match = line.match(/^(\d{2}:\d{2})/);
-                                                return match ? match[1] : "00:00";
-                                              })()}
-                                            </span>
-                                            <span className="text-gray-800 dark:text-gray-200">{line.replace(/^\d{2}:\d{2}\s*/, '')}</span>
-                                          </div>
-                                        ) : (
-                                          <span className="text-gray-800 dark:text-gray-200">{line}</span>
-                                        )}
-                                      </div>
-                                    ))}
-                                  </div>
-                                ) : (
-                                  <div className="text-gray-500 dark:text-gray-400 text-center h-full flex items-center justify-center">
-                                    Enter a YouTube URL to view the transcription
+                            {!transcriptCollapsed && (
+                              <div className="bg-gray-50 dark:bg-black relative h-[477px]">
+                                {/* Transcripción */}
+                                <div className="h-full p-4 overflow-auto transcript-scroll-area">
+                                  {isLoading ? (
+                                    <div className="flex items-center justify-center h-full">
+                                      <div className="animate-spin h-10 w-10 border-4 border-t-primary border-r-transparent border-b-primary border-l-transparent rounded-full"></div>
+                                    </div>
+                                  ) : videoResult ? (
+                                    <div className="space-y-1">
+                                      {videoResult.split('\n').map((line, i) => (
+                                        <div 
+                                          key={i}
+                                          id={`transcript-line-${i}`}
+                                          className="py-1 px-1 rounded transition-colors"
+                                        >
+                                          {line.match(/^(\d{2}:\d{2})/) ? (
+                                            <div className="flex items-start">
+                                              <span 
+                                                className="inline-block bg-white dark:bg-gray-700 text-black dark:text-white text-xs font-mono py-0.5 px-1.5 rounded mr-2 cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600"
+                                                onClick={() => {
+                                                  const timeMatch = line.match(/^(\d{2}:\d{2})/);
+                                                  if (timeMatch && timeMatch[1]) {
+                                                    handleTranscriptTimeClick(timeMatch[1]);
+                                                  }
+                                                }}
+                                              >
+                                                {(() => {
+                                                  const match = line.match(/^(\d{2}:\d{2})/);
+                                                  return match ? match[1] : "00:00";
+                                                })()}
+                                              </span>
+                                              <span className="text-gray-800 dark:text-gray-200">{line.replace(/^\d{2}:\d{2}\s*/, '')}</span>
+                                            </div>
+                                          ) : (
+                                            <span className="text-gray-800 dark:text-gray-200">{line}</span>
+                                          )}
+                                        </div>
+                                      ))}
+                                    </div>
+                                  ) : (
+                                    <div className="text-gray-500 dark:text-gray-400 text-center h-full flex items-center justify-center">
+                                      Enter a YouTube URL to view the transcription
+                                    </div>
+                                  )}
+                                </div>
+                                
+                                {/* Botones de acción para la transcripción */}
+                                {videoResult && (
+                                  <div className="absolute bottom-3 right-3 flex space-x-2 z-20">
+                                    <button 
+                                      className="p-2 bg-white dark:bg-gray-800 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors shadow-md"
+                                      onClick={() => {
+                                        navigator.clipboard.writeText(videoResult);
+                                      }}
+                                      title="Copy transcription"
+                                    >
+                                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-600 dark:text-gray-300">
+                                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                                      </svg>
+                                    </button>
+                                    <button 
+                                      className="p-2 bg-white dark:bg-gray-800 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors shadow-md"
+                                      onClick={() => {
+                                        const blob = new Blob([videoResult], { type: "text/plain" });
+                                        const url = window.URL.createObjectURL(blob);
+                                        const a = document.createElement("a");
+                                        a.href = url;
+                                        const fileName = videoUrl ? 
+                                          `transcription_${new Date().toISOString().slice(0, 10)}` : 
+                                          "transcription";
+                                        a.download = `${fileName}.txt`;
+                                        a.click();
+                                      }}
+                                      title="Descargar transcripción"
+                                    >
+                                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-600 dark:text-gray-300">
+                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                        <polyline points="7 10 12 15 17 10"></polyline>
+                                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                                      </svg>
+                                    </button>
                                   </div>
                                 )}
                               </div>
-                              
-                              {/* Botones de acción para la transcripción */}
-                              {videoResult && (
-                                <div className="absolute bottom-3 right-3 flex space-x-2 z-20">
-                                  <button 
-                                    className="p-2 bg-white dark:bg-gray-800 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors shadow-md"
-                                    onClick={() => {
-                                      navigator.clipboard.writeText(videoResult);
-                                    }}
-                                    title="Copy transcription"
-                                  >
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-600 dark:text-gray-300">
-                                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                                    </svg>
-                                  </button>
-                                  <button 
-                                    className="p-2 bg-white dark:bg-gray-800 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors shadow-md"
-                                    onClick={() => {
-                                      const blob = new Blob([videoResult], { type: "text/plain" });
-                                      const url = window.URL.createObjectURL(blob);
-                                      const a = document.createElement("a");
-                                      a.href = url;
-                                      const fileName = videoUrl ? 
-                                        `transcription_${new Date().toISOString().slice(0, 10)}` : 
-                                        "transcription";
-                                      a.download = `${fileName}.txt`;
-                                      a.click();
-                                    }}
-                                    title="Descargar transcripción"
-                                  >
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-600 dark:text-gray-300">
-                                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                                      <polyline points="7 10 12 15 17 10"></polyline>
-                                      <line x1="12" y1="15" x2="12" y2="3"></line>
-                                    </svg>
-                                  </button>
-                                </div>
-                              )}
-                            </div>
+                            )}
                           </div>
                         </div>
                       </div>
