@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useRef, useState } from 'react';
 
 interface YouTubePlayerProps {
@@ -297,7 +298,7 @@ const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl, onTimeUpdate, s
                 }
               }}
             >
-              Drag & drop a YouTube URL here for transcription
+              Drag & Drop or Copy your Youtube URL
             </div>
           </div>
         </div>
