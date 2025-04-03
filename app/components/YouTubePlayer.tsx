@@ -267,13 +267,13 @@ const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl, onTimeUpdate, s
 
   if (!videoUrl) {
     return (
-      <div className="flex flex-col items-center justify-center h-full text-center p-8">
-        <div className="text-6xl mb-4 hover:text-primary transition-colors cursor-pointer" 
+      <div className="flex flex-col items-center justify-center h-full min-h-[300px] sm:min-h-[350px] md:min-h-[400px] text-center p-8">
+        <div className="text-5xl sm:text-6xl mb-4 hover:text-primary transition-colors cursor-pointer" 
              onClick={() => document.querySelector('textarea')?.focus()}>
           {'</>'}
         </div>
-        <h2 className="text-2xl font-semibold mb-2">Welcome to AI Dev Tools</h2>
-        <div className="flex flex-col gap-4 items-center max-w-lg">
+        <h2 className="text-xl sm:text-2xl font-semibold mb-2">Welcome to AI Dev Tools</h2>
+        <div className="flex flex-col gap-4 items-center max-w-lg w-full">
           <button 
             onClick={() => document.querySelector('textarea')?.focus()}
             className="text-muted-foreground hover:text-primary transition-colors p-4 rounded-lg border-2 border-dashed hover:border-primary w-full"
@@ -310,14 +310,14 @@ const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl, onTimeUpdate, s
 
   if (!videoId) {
     return (
-      <div className="flex items-center justify-center h-full">
+      <div className="flex items-center justify-center h-full min-h-[300px]">
         <p className="text-red-500">Invalid YouTube URL</p>
       </div>
     );
   }
 
   return (
-    <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
+    <div className="relative w-full" style={{ aspectRatio: '16/9' }}>
       {isLoading ? (
         <div className="absolute top-0 left-0 w-full h-full flex flex-col items-center justify-center bg-background">
           <div className="animate-spin h-12 w-12 border-4 border-t-primary border-r-transparent border-b-primary border-l-transparent rounded-full mb-4"></div>

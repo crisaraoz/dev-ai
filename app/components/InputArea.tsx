@@ -59,9 +59,9 @@ const InputArea: React.FC<InputAreaProps> = ({
   }, []);
 
   return (
-    <div className="space-y-1 sm:space-y-2 w-full">
+    <div className="w-full">
       <div 
-        className={`relative rounded-md ${isDragging ? 'border-2 border-dashed border-primary' : ''}`}
+        className={`relative rounded-md ${isDragging ? 'border-2 border-dashed border-primary' : 'border border-input'}`}
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -71,26 +71,29 @@ const InputArea: React.FC<InputAreaProps> = ({
           onChange={(e) => setCode(e.target.value)}
           onPaste={handlePaste}
           placeholder={placeholder}
-          className="min-h-[60px] sm:min-h-[100px] font-mono resize-none text-sm sm:text-base"
+          className="min-h-[60px] sm:min-h-[100px] lg:min-h-[120px] font-mono resize-none text-sm sm:text-base pb-12 border-0"
         />
+        
+        {/* Botón posicionado dentro del área de texto */}
+        <div className="absolute bottom-3 right-3">
+          <Button 
+            onClick={handleProcess} 
+            disabled={!code.trim() || isLoading}
+            className="w-20 sm:w-24 text-xs sm:text-sm py-1 px-2 sm:px-3 sm:py-2 h-8 sm:h-10"
+          >
+            {isLoading ? (
+              <Loader2 className="h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
+            ) : (
+              'Process'
+            )}
+          </Button>
+        </div>
+        
         {isDragging && (
           <div className="absolute inset-0 bg-background/80 flex items-center justify-center rounded-md">
             <p className="text-primary text-sm sm:text-base font-medium">Drop your code or YouTube URL here</p>
           </div>
         )}
-      </div>
-      <div className="flex justify-end">
-        <Button 
-          onClick={handleProcess} 
-          disabled={!code.trim() || isLoading}
-          className="w-20 sm:w-24 text-xs sm:text-sm py-1 px-2 sm:px-3 sm:py-2 h-8 sm:h-10"
-        >
-          {isLoading ? (
-            <Loader2 className="h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
-          ) : (
-            'Process'
-          )}
-        </Button>
       </div>
     </div>
   );

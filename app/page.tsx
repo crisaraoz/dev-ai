@@ -798,76 +798,81 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
 
                   {activeFeature === 'youtube' && (
                     <>
-                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 h-full">
                         {/* Left Column */}
-                        <div className="flex flex-col space-y-6">
+                        <div className="flex flex-col h-full">
                           
-                          {videoUrl ? (
-                            <div className="bg-card rounded-lg overflow-hidden border flex-1">
-                              <YouTubePlayer
-                                videoUrl={videoUrl}
-                                onTimeUpdate={handleVideoTimeUpdate}
-                                seekTo={videoSeekTime}
-                                isProcessing={isLoading}
+                          <div className="bg-white dark:bg-black rounded-lg flex flex-col border border-gray-200 dark:border-gray-800 flex-grow">
+                            {videoUrl ? (
+                              <div className="flex-grow flex items-stretch">
+                                <div className="w-full flex items-center justify-center">
+                                  <YouTubePlayer
+                                    videoUrl={videoUrl}
+                                    onTimeUpdate={handleVideoTimeUpdate}
+                                    seekTo={videoSeekTime}
+                                    isProcessing={isLoading}
+                                    onYouTubeUrl={handleYouTubeUrl}
+                                  />
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="flex-1 flex flex-col items-center justify-center py-8 px-4 sm:p-8">
+                                <div className="text-4xl font-bold mb-4 text-gray-700 dark:text-gray-300">&lt;/&gt;</div>
+                                <h1 className="text-2xl font-bold mb-8 text-center text-gray-900 dark:text-white">Welcome to AI Dev Tools</h1>
+                                <div 
+                                  className="w-full max-w-md bg-gray-100 dark:bg-black p-4 rounded-lg mb-4 border border-dashed border-gray-400 dark:border-gray-500 hover:border-white dark:hover:border-white transition-all duration-300 cursor-pointer"
+                                  onDragOver={(e) => {
+                                    e.preventDefault();
+                                    e.currentTarget.classList.add('border-white');
+                                    e.currentTarget.classList.add('dark:border-white');
+                                    e.currentTarget.classList.add('shadow-[0_0_10px_rgba(255,255,255,0.4)]');
+                                    e.currentTarget.classList.add('bg-gray-200');
+                                    e.currentTarget.classList.add('dark:bg-gray-900');
+                                  }}
+                                  onDragLeave={(e) => {
+                                    e.preventDefault();
+                                    e.currentTarget.classList.remove('border-white');
+                                    e.currentTarget.classList.remove('dark:border-white');
+                                    e.currentTarget.classList.remove('shadow-[0_0_10px_rgba(255,255,255,0.4)]');
+                                    e.currentTarget.classList.remove('bg-gray-200');
+                                    e.currentTarget.classList.remove('dark:bg-gray-900');
+                                  }}
+                                  onDrop={(e) => {
+                                    e.preventDefault();
+                                    e.currentTarget.classList.remove('border-white');
+                                    e.currentTarget.classList.remove('dark:border-white');
+                                    e.currentTarget.classList.remove('shadow-[0_0_10px_rgba(255,255,255,0.4)]');
+                                    e.currentTarget.classList.remove('bg-gray-200');
+                                    e.currentTarget.classList.remove('dark:bg-gray-900');
+                                    const text = e.dataTransfer.getData('text');
+                                    if (text.match(/^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+$/)) {
+                                      handleYouTubeUrl(text);
+                                    }
+                                  }}
+                                >
+                                  <p className="text-center text-gray-800 dark:text-white">Drag & Drop or Copy your Youtube URL</p>
+                                </div>
+                              </div>
+                            )}
+                            
+                            {/* Input area integrated within the same box */}
+                            <div className="p-4 border-t border-gray-200 dark:border-gray-800">
+                              <InputArea 
+                                code={code}
+                                setCode={setCode}
+                                handleProcess={handleProcess}
+                                selectedMessage={selectedMessage}
+                                isLoading={isLoading}
                                 onYouTubeUrl={handleYouTubeUrl}
+                                placeholder="Drag & Drop or Copy your Youtube URL"
                               />
                             </div>
-                          ) : (
-                            <div className="bg-white dark:bg-black rounded-lg flex flex-col items-center justify-center h-[300px] p-8 border border-gray-200 dark:border-gray-800 flex-1">
-                              <div className="text-4xl font-bold mb-4 text-gray-700 dark:text-gray-300">&lt;/&gt;</div>
-                              <h1 className="text-2xl font-bold mb-8 text-center text-gray-900 dark:text-white">Welcome to AI Dev Tools</h1>
-                              <div 
-                                className="w-full max-w-md bg-gray-100 dark:bg-black p-4 rounded-lg mb-4 border border-dashed border-gray-400 dark:border-gray-500 hover:border-white dark:hover:border-white transition-all duration-300 cursor-pointer"
-                                onDragOver={(e) => {
-                                  e.preventDefault();
-                                  e.currentTarget.classList.add('border-white');
-                                  e.currentTarget.classList.add('dark:border-white');
-                                  e.currentTarget.classList.add('shadow-[0_0_10px_rgba(255,255,255,0.4)]');
-                                  e.currentTarget.classList.add('bg-gray-200');
-                                  e.currentTarget.classList.add('dark:bg-gray-900');
-                                }}
-                                onDragLeave={(e) => {
-                                  e.preventDefault();
-                                  e.currentTarget.classList.remove('border-white');
-                                  e.currentTarget.classList.remove('dark:border-white');
-                                  e.currentTarget.classList.remove('shadow-[0_0_10px_rgba(255,255,255,0.4)]');
-                                  e.currentTarget.classList.remove('bg-gray-200');
-                                  e.currentTarget.classList.remove('dark:bg-gray-900');
-                                }}
-                                onDrop={(e) => {
-                                  e.preventDefault();
-                                  e.currentTarget.classList.remove('border-white');
-                                  e.currentTarget.classList.remove('dark:border-white');
-                                  e.currentTarget.classList.remove('shadow-[0_0_10px_rgba(255,255,255,0.4)]');
-                                  e.currentTarget.classList.remove('bg-gray-200');
-                                  e.currentTarget.classList.remove('dark:bg-gray-900');
-                                  const text = e.dataTransfer.getData('text');
-                                  if (text.match(/^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+$/)) {
-                                    handleYouTubeUrl(text);
-                                  }
-                                }}
-                              >
-                                <p className="text-center text-gray-800 dark:text-white">Drag & Drop or Copy your Youtube URL</p>
-                              </div>
-                            </div>
-                          )}
-                          
-                          <div className="flex-shrink-0">
-                            <InputArea 
-                              code={code}
-                              setCode={setCode}
-                              handleProcess={handleProcess}
-                              selectedMessage={selectedMessage}
-                              isLoading={isLoading}
-                              onYouTubeUrl={handleYouTubeUrl}
-                              placeholder="Drag & Drop or Copy your Youtube URL"
-                            />
                           </div>
                         </div>
                 
                         {/* Right Column - Transcript */}
-                        <div className="flex flex-col h-auto">
-                          <div className="bg-white dark:bg-black border border-gray-200 dark:border-gray-800 rounded-lg shadow-lg overflow-hidden">
+                        <div className="flex flex-col h-full">
+                          <div className="bg-white dark:bg-black border border-gray-200 dark:border-gray-800 rounded-lg shadow-lg overflow-hidden h-full">
                             <div className="flex items-center justify-between p-3 border-b border-gray-200 dark:border-gray-800">
                               <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Video Transcript</h2>
                               <div className="flex items-center gap-2">
@@ -883,7 +888,7 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
                               </div>
                             </div>
 
-                            <div className="bg-gray-50 dark:bg-black relative h-[480px]">
+                            <div className="bg-gray-50 dark:bg-black relative h-[480px] lg:h-[520px]">
                               {/* Transcripción */}
                               <div className="h-full p-4 overflow-auto transcript-scroll-area">
                                 {isLoading ? (
