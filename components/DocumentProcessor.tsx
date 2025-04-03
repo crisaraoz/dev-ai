@@ -226,7 +226,7 @@ export default function DocumentProcessor() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="es">Spanish</SelectItem>
-                <SelectItem value="en">Inglés</SelectItem>
+                <SelectItem value="en">English</SelectItem>
               </SelectContent>
             </Select>
           </div>

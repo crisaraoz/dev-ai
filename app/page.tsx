@@ -5,6 +5,7 @@ import { useTheme } from "next-themes";
 import { Code2, Maximize2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LayoutGrid } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 // Importación de componentes
 import Sidebar from "./components/Sidebar";
@@ -632,38 +633,34 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
             <div className="flex-1 flex flex-col">
               {/* Feature Selector */}
               <div className="border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-black">
-                <div className="max-w-7xl mx-auto">
-                  <div className="flex justify-center space-x-4 p-4">
-                    <button
-                      onClick={() => setActiveFeature('code')}
-                      className={`px-4 py-2 rounded-lg transition-colors ${
-                        activeFeature === 'code'
-                          ? 'bg-blue-500 text-white'
-                          : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
-                      }`}
+                <div className="flex justify-center mx-auto py-1">
+                  <div className="w-[800px] mx-auto">
+                    <Tabs 
+                      value={activeFeature} 
+                      onValueChange={(value) => setActiveFeature(value as 'code' | 'youtube' | 'docs')}
+                      className="w-full"
                     >
-                      Code
-                    </button>
-                    <button
-                      onClick={() => setActiveFeature('youtube')}
-                      className={`px-4 py-2 rounded-lg transition-colors ${
-                        activeFeature === 'youtube'
-                          ? 'bg-blue-500 text-white'
-                          : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
-                      }`}
-                    >
-                      YouTube
-                    </button>
-                    <button
-                      onClick={() => setActiveFeature('docs')}
-                      className={`px-4 py-2 rounded-lg transition-colors ${
-                        activeFeature === 'docs'
-                          ? 'bg-blue-500 text-white'
-                          : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
-                      }`}
-                    >
-                      Documentation
-                    </button>
+                      <TabsList className="grid w-full grid-cols-3 bg-gray-100 dark:bg-transparent p-0 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-800">
+                        <TabsTrigger 
+                          value="code"
+                          className="flex items-center justify-center h-10 px-6 py-0 border-0 border-r border-gray-200 dark:border-gray-800 bg-gray-100 dark:bg-black text-center text-gray-500 dark:text-gray-400 data-[state=active]:!bg-blue-500 data-[state=active]:!text-white rounded-tl-lg rounded-bl-lg rounded-tr-none rounded-br-none transition-colors"
+                        >
+                          Code Assistant
+                        </TabsTrigger>
+                        <TabsTrigger 
+                          value="youtube"
+                          className="flex items-center justify-center h-10 px-6 py-0 border-0 border-r border-gray-200 dark:border-gray-800 bg-gray-100 dark:bg-black text-center text-gray-500 dark:text-gray-400 data-[state=active]:!bg-blue-500 data-[state=active]:!text-white rounded-none transition-colors"
+                        >
+                          Youtube Resumer
+                        </TabsTrigger>
+                        <TabsTrigger 
+                          value="docs"
+                          className="flex items-center justify-center h-10 px-6 py-0 border-0 bg-gray-100 dark:bg-black text-center text-gray-500 dark:text-gray-400 data-[state=active]:!bg-blue-500 data-[state=active]:!text-white rounded-tr-lg rounded-br-lg rounded-tl-none rounded-bl-none transition-colors"
+                        >
+                          Ask Documentation
+                        </TabsTrigger>
+                      </TabsList>
+                    </Tabs>
                   </div>
                 </div>
               </div>
