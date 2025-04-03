@@ -634,7 +634,7 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
               {/* Feature Selector */}
               <div className="border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-black">
                 <div className="flex justify-center mx-auto py-1">
-                  <div className="w-[800px] mx-auto">
+                  <div className="w-full max-w-[800px] px-2 sm:px-4 mx-auto">
                     <Tabs 
                       value={activeFeature} 
                       onValueChange={(value) => setActiveFeature(value as 'code' | 'youtube' | 'docs')}
@@ -643,19 +643,19 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
                       <TabsList className="grid w-full grid-cols-3 bg-gray-100 dark:bg-transparent p-0 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-800">
                         <TabsTrigger 
                           value="code"
-                          className="flex items-center justify-center h-10 px-6 py-0 border-0 border-r border-gray-200 dark:border-gray-800 bg-gray-100 dark:bg-black text-center text-gray-500 dark:text-gray-400 data-[state=active]:!bg-blue-500 data-[state=active]:!text-white rounded-tl-lg rounded-bl-lg rounded-tr-none rounded-br-none transition-colors"
+                          className="flex items-center justify-center h-8 sm:h-10 px-2 sm:px-6 py-0 border-0 border-r border-gray-200 dark:border-gray-800 bg-gray-100 dark:bg-black text-center text-gray-500 dark:text-gray-400 data-[state=active]:!bg-blue-500 data-[state=active]:!text-white rounded-tl-lg rounded-bl-lg rounded-tr-none rounded-br-none transition-colors text-xs sm:text-sm"
                         >
                           Code Assistant
                         </TabsTrigger>
                         <TabsTrigger 
                           value="youtube"
-                          className="flex items-center justify-center h-10 px-6 py-0 border-0 border-r border-gray-200 dark:border-gray-800 bg-gray-100 dark:bg-black text-center text-gray-500 dark:text-gray-400 data-[state=active]:!bg-blue-500 data-[state=active]:!text-white rounded-none transition-colors"
+                          className="flex items-center justify-center h-8 sm:h-10 px-2 sm:px-6 py-0 border-0 border-r border-gray-200 dark:border-gray-800 bg-gray-100 dark:bg-black text-center text-gray-500 dark:text-gray-400 data-[state=active]:!bg-blue-500 data-[state=active]:!text-white rounded-none transition-colors text-xs sm:text-sm"
                         >
                           Youtube Resumer
                         </TabsTrigger>
                         <TabsTrigger 
                           value="docs"
-                          className="flex items-center justify-center h-10 px-6 py-0 border-0 bg-gray-100 dark:bg-black text-center text-gray-500 dark:text-gray-400 data-[state=active]:!bg-blue-500 data-[state=active]:!text-white rounded-tr-lg rounded-br-lg rounded-tl-none rounded-bl-none transition-colors"
+                          className="flex items-center justify-center h-8 sm:h-10 px-2 sm:px-6 py-0 border-0 bg-gray-100 dark:bg-black text-center text-gray-500 dark:text-gray-400 data-[state=active]:!bg-blue-500 data-[state=active]:!text-white rounded-tr-lg rounded-br-lg rounded-tl-none rounded-bl-none transition-colors text-xs sm:text-sm"
                         >
                           Ask Documentation
                         </TabsTrigger>
@@ -666,13 +666,13 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
               </div>
 
               {/* Main Content Area */}
-              <div className="flex-1 overflow-auto p-4 bg-white dark:bg-black">
-                <div className="max-w-7xl mx-auto pb-16">
+              <div className="flex-1 overflow-auto p-2 sm:p-4 bg-white dark:bg-black">
+                <div className="max-w-7xl mx-auto pb-8 sm:pb-16">
                   {activeFeature === 'code' && (
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-6">
                       {/* Left Column */}
-                      <div className="space-y-6">
-                        <div className="flex items-center gap-4">
+                      <div className="space-y-3 sm:space-y-6">
+                        <div className="flex items-center gap-2 sm:gap-4">
                           <LanguageSelector 
                             language={language} 
                             setLanguage={setLanguage}
@@ -701,7 +701,7 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
                       </div>
                       
                       {/* Right Column */}
-                      <div className="space-y-4">
+                      <div className="space-y-2 sm:space-y-4">
                         <div className="flex items-center justify-between">
                           <select
                             value={activeTab}

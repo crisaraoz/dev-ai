@@ -21,11 +21,11 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({
   isDisabled = false
 }) => {
   return (
-    <div className="flex flex-col md:flex-row gap-4 items-start">
-      <div className="w-full md:w-auto">
-        <Label htmlFor="language-select" className={`block mb-2 text-sm ${isDisabled ? 'opacity-50' : ''}`}>Programming Language</Label>
+    <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 items-start w-full">
+      <div className="w-full sm:w-auto">
+        <Label htmlFor="language-select" className={`block mb-1 sm:mb-2 text-xs sm:text-sm ${isDisabled ? 'opacity-50' : ''}`}>Programming Language</Label>
         <Select value={language} onValueChange={setLanguage} disabled={isDisabled}>
-          <SelectTrigger className="w-full md:w-[200px]" id="language-select">
+          <SelectTrigger className="w-full sm:w-[180px] md:w-[200px] h-8 sm:h-10 text-xs sm:text-sm" id="language-select">
             <SelectValue placeholder="Select Language" />
           </SelectTrigger>
           <SelectContent>
@@ -38,10 +38,10 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({
         </Select>
       </div>
       
-      <div className="w-full md:w-auto">
-        <Label className={`block mb-2 text-sm ${isDisabled ? 'opacity-50' : ''}`}>Experience Level</Label>
+      <div className="w-full sm:w-auto">
+        <Label className={`block mb-1 sm:mb-2 text-xs sm:text-sm ${isDisabled ? 'opacity-50' : ''}`}>Experience Level</Label>
         <Select value={explanationLevel} onValueChange={setExplanationLevel} disabled={isDisabled}>
-          <SelectTrigger className="w-full md:w-[200px]">
+          <SelectTrigger className="w-full sm:w-[180px] md:w-[200px] h-8 sm:h-10 text-xs sm:text-sm">
             <SelectValue placeholder="Select Level" />
           </SelectTrigger>
           <SelectContent>

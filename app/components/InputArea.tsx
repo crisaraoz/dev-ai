@@ -57,7 +57,7 @@ const InputArea: React.FC<InputAreaProps> = ({
   }, []);
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-1 sm:space-y-2 w-full">
       <div 
         className={`relative rounded-md ${isDragging ? 'border-2 border-dashed border-primary' : ''}`}
         onDrop={handleDrop}
@@ -68,12 +68,12 @@ const InputArea: React.FC<InputAreaProps> = ({
           value={code}
           onChange={(e) => setCode(e.target.value)}
           onPaste={handlePaste}
-          placeholder="Enter your code or question here... You can also drag & drop a YouTube URL"
-          className="min-h-[100px] font-mono resize-none"
+          placeholder="Write your code or question here..."
+          className="min-h-[60px] sm:min-h-[100px] font-mono resize-none text-sm sm:text-base"
         />
         {isDragging && (
           <div className="absolute inset-0 bg-background/80 flex items-center justify-center rounded-md">
-            <p className="text-primary font-medium">Drop your code or YouTube URL here</p>
+            <p className="text-primary text-sm sm:text-base font-medium">Drop your code or YouTube URL here</p>
           </div>
         )}
       </div>
@@ -81,10 +81,10 @@ const InputArea: React.FC<InputAreaProps> = ({
         <Button 
           onClick={handleProcess} 
           disabled={!code.trim() || isLoading}
-          className="w-24"
+          className="w-20 sm:w-24 text-xs sm:text-sm py-1 px-2 sm:px-3 sm:py-2 h-8 sm:h-10"
         >
           {isLoading ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
+            <Loader2 className="h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
           ) : (
             'Process'
           )}
