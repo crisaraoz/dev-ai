@@ -106,3 +106,37 @@
   position: relative;
   overflow: hidden;
 }
+
+/* Estilos de dark mode para select y options */
+.dark select {
+  background-color: #000000 !important;
+  color: #d1d5db !important;
+  border-color: #333333 !important;
+}
+
+.dark select option {
+  background-color: #000000 !important;
+  color: #d1d5db !important;
+  padding: 10px 14px !important;
+}
+
+.dark select option:checked,
+.dark select option:hover {
+  background-color: #333333 !important;
+  color: #cccccc !important;
+}
+
+/* Solución para navegadores WebKit */
+@media screen and (-webkit-min-device-pixel-ratio:0) { 
+  .dark select {
+    border-radius: 4px !important;
+  }
+  
+  .dark select option {
+    background-color: #000000 !important;
+  }
+  
+  .dark select option:checked {
+    background-color: #222222 !important;
+  }
+}

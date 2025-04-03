@@ -709,13 +709,85 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
                           <select
                             value={activeTab}
                             onChange={(e) => setActiveTab(e.target.value)}
-                            className="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg px-3 py-2 border border-gray-200 dark:border-gray-700"
+                            className="text-gray-700 dark:text-gray-300 rounded-lg px-3 py-2 border border-gray-200 dark:border-gray-700 bg-transparent"
+                            style={{ 
+                              WebkitAppearance: 'none',
+                              MozAppearance: 'none',
+                              appearance: 'none',
+                              backgroundImage: `url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23${theme === 'dark' ? '888' : '444'}%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E")`,
+                              backgroundRepeat: 'no-repeat',
+                              backgroundPosition: 'right 0.5rem center',
+                              backgroundSize: '0.65em auto',
+                              paddingRight: '2.5rem'
+                            }}
                           >
-                            <option value="refactor">Refactor</option>
-                            <option value="test">Test</option>
-                            <option value="explain">Explain</option>
+                            <option value="refactor" className="bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300">Refactor</option>
+                            <option value="test" className="bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300">Test</option>
+                            <option value="explain" className="bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300">Explain</option>
                           </select>
                         </div>
+
+                        {/* Add style for dark mode dropdown options globally */}
+                        {theme === 'dark' && (
+                          <style jsx global>{`
+                            option {
+                              background-color: #000000 !important;
+                              color: #d1d5db !important;
+                            }
+                            
+                            select {
+                              background-color: #000000 !important;
+                              color: #d1d5db !important;
+                              border-color: #333333 !important;
+                            }
+                            
+                            select option {
+                              background-color: #000000 !important;
+                              color: #d1d5db !important;
+                              padding: 10px 14px !important;
+                              border-bottom: 1px solid #333333 !important;
+                            }
+                            
+                            /* For Firefox */
+                            select:-moz-focusring {
+                              color: transparent !important;
+                              text-shadow: 0 0 0 #d1d5db !important;
+                            }
+                            
+                            /* For Chrome/Safari */
+                            select option:checked,
+                            select option:hover {
+                              background-color: #333333 !important;
+                              color: #cccccc !important;
+                            }
+                            
+                            /* Enhanced dropdown appearance */
+                            select {
+                              box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2) !important;
+                            }
+                            
+                            /* Make options look more like a menu */
+                            select option {
+                              margin: 2px 0 !important;
+                              border-radius: 4px !important;
+                            }
+                            
+                            /* Fix for Webkit browsers */
+                            @media screen and (-webkit-min-device-pixel-ratio:0) { 
+                              select {
+                                border-radius: 4px !important;
+                              }
+                              
+                              select option {
+                                background-color: #000000 !important;
+                              }
+                              
+                              select option:checked {
+                                background-color: #222222 !important;
+                              }
+                            }
+                          `}</style>
+                        )}
 
                         <ResultsArea
                           result={result}
@@ -748,25 +820,28 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
                               <div className="text-4xl font-bold mb-4 text-gray-700 dark:text-gray-300">&lt;/&gt;</div>
                               <h1 className="text-2xl font-bold mb-8 text-center text-gray-900 dark:text-white">Welcome to AI Dev Tools</h1>
                               <div 
-                                className="w-full max-w-md bg-gray-100 dark:bg-black p-4 rounded-lg mb-4 border border-dashed border-gray-400 dark:border-gray-500 hover:border-primary transition-all duration-300 cursor-pointer"
+                                className="w-full max-w-md bg-gray-100 dark:bg-black p-4 rounded-lg mb-4 border border-dashed border-gray-400 dark:border-gray-500 hover:border-white dark:hover:border-white transition-all duration-300 cursor-pointer"
                                 onDragOver={(e) => {
                                   e.preventDefault();
-                                  e.currentTarget.classList.add('border-primary');
-                                  e.currentTarget.classList.add('shadow-[0_0_10px_rgba(59,130,246,0.5)]');
+                                  e.currentTarget.classList.add('border-white');
+                                  e.currentTarget.classList.add('dark:border-white');
+                                  e.currentTarget.classList.add('shadow-[0_0_10px_rgba(255,255,255,0.4)]');
                                   e.currentTarget.classList.add('bg-gray-200');
                                   e.currentTarget.classList.add('dark:bg-gray-900');
                                 }}
                                 onDragLeave={(e) => {
                                   e.preventDefault();
-                                  e.currentTarget.classList.remove('border-primary');
-                                  e.currentTarget.classList.remove('shadow-[0_0_10px_rgba(59,130,246,0.5)]');
+                                  e.currentTarget.classList.remove('border-white');
+                                  e.currentTarget.classList.remove('dark:border-white');
+                                  e.currentTarget.classList.remove('shadow-[0_0_10px_rgba(255,255,255,0.4)]');
                                   e.currentTarget.classList.remove('bg-gray-200');
                                   e.currentTarget.classList.remove('dark:bg-gray-900');
                                 }}
                                 onDrop={(e) => {
                                   e.preventDefault();
-                                  e.currentTarget.classList.remove('border-primary');
-                                  e.currentTarget.classList.remove('shadow-[0_0_10px_rgba(59,130,246,0.5)]');
+                                  e.currentTarget.classList.remove('border-white');
+                                  e.currentTarget.classList.remove('dark:border-white');
+                                  e.currentTarget.classList.remove('shadow-[0_0_10px_rgba(255,255,255,0.4)]');
                                   e.currentTarget.classList.remove('bg-gray-200');
                                   e.currentTarget.classList.remove('dark:bg-gray-900');
                                   const text = e.dataTransfer.getData('text');
