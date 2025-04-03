@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { LayoutGrid, Plus, MessageSquare, Trash2 } from "lucide-react";
+import { Plus, MessageSquare, Trash2 } from "lucide-react";
 import { 
   Dialog, 
   DialogContent, 
@@ -18,23 +18,23 @@ interface Conversation {
 }
 
 interface SidebarProps {
-  sidebarOpen: boolean;
-  toggleSidebar: () => void;
+  isOpen: boolean;
+  onClose: () => void;
   conversations: Conversation[];
   activeConversation: string | null;
-  startNewConversation: () => void;
-  selectConversation: (id: string) => void;
-  deleteConversation: (id: string) => void;
+  onNewConversation: () => void;
+  onSelectConversation: (id: string) => void;
+  onDeleteConversation: (id: string) => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
-  sidebarOpen,
-  toggleSidebar,
+  isOpen,
+  onClose,
   conversations,
   activeConversation,
-  startNewConversation,
-  selectConversation,
-  deleteConversation
+  onNewConversation,
+  onSelectConversation,
+  onDeleteConversation
 }) => {
   const [hoverConversation, setHoverConversation] = useState<string | null>(null);
   const [hoverDelete, setHoverDelete] = useState<string | null>(null);
@@ -49,7 +49,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   const confirmDelete = () => {
     if (conversationToDelete) {
-      deleteConversation(conversationToDelete);
+      onDeleteConversation(conversationToDelete);
     }
     setDeleteDialog(false);
     setConversationToDelete(null);
@@ -57,81 +57,69 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   return (
     <>
-      {/* Sidebar */}
-      <div className={`fixed inset-y-0 left-0 bg-gray-50 dark:bg-black w-64 shadow-lg transform transition-transform duration-300 ease-in-out z-30 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-        <div className="p-3 pt-12">
-          <Button 
-            variant="outline" 
-            className="w-full mb-4 text-left flex items-center gap-2 justify-start rounded-md" 
-            onClick={startNewConversation}
-          >
-            <Plus className="h-4 w-4" />
-            New Conversation
-          </Button>
+      <div 
+        className={`fixed inset-y-0 left-0 transform transition-transform duration-300 ease-in-out z-30 w-64 bg-white dark:bg-black border-r border-gray-200 dark:border-gray-800 ${
+          isOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
+        <div className="flex flex-col h-full pt-16 pb-4">
+          <div className="px-4">
+            <Button 
+              variant="outline" 
+              className="w-full mb-4 text-left flex items-center gap-2 justify-start" 
+              onClick={onNewConversation}
+            >
+              <Plus className="h-4 w-4" />
+              New Conversation
+            </Button>
+          </div>
 
-          <div className="space-y-1 mt-4">
-            {conversations.map((conv) => (
-              <div 
-                key={conv.id}
-                className="relative"
-                onMouseEnter={() => setHoverConversation(conv.id)}
-                onMouseLeave={() => setHoverConversation(null)}
-              >
-                <button
-                  className={`w-full text-left p-3 rounded-md flex items-center gap-2 transition-colors ${activeConversation === conv.id ? 'bg-gray-200 dark:bg-gray-800' : 'hover:bg-gray-100 dark:hover:bg-gray-800'}`}
-                  onClick={() => selectConversation(conv.id)}
+          <div className="flex-1 overflow-auto px-4">
+            <div className="space-y-2">
+              {conversations.map((conv) => (
+                <div 
+                  key={conv.id}
+                  className="relative"
+                  onMouseEnter={() => setHoverConversation(conv.id)}
+                  onMouseLeave={() => setHoverConversation(null)}
                 >
-                  <MessageSquare className="h-4 w-4 flex-shrink-0" />
-                  <div className="truncate">{conv.title}</div>
-                </button>
-                
-                {hoverConversation === conv.id && (
                   <button
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1.5 rounded-md transition-colors"
-                    onMouseEnter={() => setHoverDelete(conv.id)}
-                    onMouseLeave={() => setHoverDelete(null)}
-                    onClick={(e) => handleDeleteClick(e, conv.id)}
-                    style={{
-                      backgroundColor: hoverDelete === conv.id ? 'rgba(220, 38, 38, 0.1)' : 'transparent'
-                    }}
+                    className={`w-full text-left p-3 rounded-lg flex items-center gap-2 transition-colors ${
+                      activeConversation === conv.id 
+                        ? 'bg-gray-200 dark:bg-gray-800 text-gray-900 dark:text-white' 
+                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                    }`}
+                    onClick={() => onSelectConversation(conv.id)}
                   >
-                    <Trash2 
-                      className="h-4 w-4 flex-shrink-0" 
-                      style={{
-                        color: hoverDelete === conv.id ? 'rgb(220, 38, 38)' : 'currentColor'
-                      }}
-                    />
+                    <MessageSquare className="h-4 w-4 flex-shrink-0" />
+                    <span className="truncate">{conv.title}</span>
                   </button>
-                )}
-              </div>
-            ))}
+                  
+                  {hoverConversation === conv.id && (
+                    <button
+                      className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1.5 rounded-md transition-colors hover:bg-red-100 dark:hover:bg-red-900"
+                      onClick={(e) => handleDeleteClick(e, conv.id)}
+                    >
+                      <Trash2 className="h-4 w-4 text-red-500" />
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Button for sidebar (as ChatGPT) */}
-      <div className="fixed top-3 left-3 z-40">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={toggleSidebar}
-          className="rounded-sm bg-transparent dark:bg-transparent border-0 hover:bg-gray-100 dark:hover:bg-gray-800 p-0 w-8 h-8 flex items-center justify-center"
-          title={sidebarOpen ? "Hide chats" : "Show chats"}
-        >
-          <LayoutGrid className="h-5 w-5" />
-        </Button>
-      </div>
-
-      {/* Overlay para cerrar sidebar en móviles */}
-      {sidebarOpen && (
+      {/* Overlay para cerrar en móviles */}
+      {isOpen && (
         <div 
-          className="fixed inset-0 bg-black bg-opacity-30 z-20 md:hidden"
-          onClick={toggleSidebar}
-        ></div>
+          className="fixed inset-0 bg-black/20 backdrop-blur-sm z-20"
+          onClick={onClose}
+        />
       )}
 
       <Dialog open={deleteDialog} onOpenChange={setDeleteDialog}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>Delete Conversation?</DialogTitle>
             <DialogDescription>

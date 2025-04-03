@@ -77,7 +77,6 @@ const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl, onTimeUpdate, s
     
     const newVideoId = getVideoId(videoUrl);
     if (newVideoId !== currentVideoId) {
-      console.log(`Video URL changed from ${currentVideoId} to ${newVideoId}`);
       setCurrentVideoId(newVideoId);
       setPlayerReady(false);
       setIsLoading(true);
@@ -101,7 +100,6 @@ const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl, onTimeUpdate, s
   useEffect(() => {
     // Solo procesar si seekTo ha cambiado y el reproductor está listo
     if (seekTo !== undefined && seekTo !== previousSeekRef.current && playerReady && playerRef.current) {
-      console.log(`Seeking to ${seekTo} seconds`);
       try {
         playerRef.current.seekTo(seekTo, true);
         previousSeekRef.current = seekTo;
@@ -118,13 +116,9 @@ const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl, onTimeUpdate, s
     // Esperar a que la API de YouTube esté lista
     const checkYTAndCreatePlayer = () => {
       if (!window.YT || !window.YT.Player) {
-        console.log("Esperando a que YouTube API esté lista...");
         setTimeout(checkYTAndCreatePlayer, 100);
         return;
       }
-      
-      console.log("Creando reproductor para video ID:", videoId);
-      
       try {
         playerRef.current = new window.YT.Player('youtube-player', {
           height: '100%',
@@ -138,13 +132,11 @@ const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl, onTimeUpdate, s
           },
           events: {
             onReady: (event: any) => {
-              console.log("Reproductor listo");
               setPlayerReady(true);
               setIsLoading(false);
               
               // Si hay un seekTo pendiente, aplicarlo ahora
               if (seekTo !== undefined) {
-                console.log(`Aplicando seekTo pendiente a ${seekTo} segundos`);
                 try {
                   event.target.seekTo(seekTo, true);
                   previousSeekRef.current = seekTo;
@@ -238,12 +230,10 @@ const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl, onTimeUpdate, s
   
   // Eventos del player
   const onPlayerReady: YouTubeProps['onReady'] = (event) => {
-    console.log('YouTube Player Ready:', event);
     playerRef.current = event.target;
   };
 
   const onPlayerStateChange: YouTubeProps['onStateChange'] = (event) => {
-    console.log('YouTube Player State Change:', event.data);
     // Actualizar el tiempo cuando cambia el estado (reproducción, pausa, etc.)
     if (event.data === 1 && onTimeUpdate) { // 1 = reproduciendo
       const currentTime = event.target.getCurrentTime();

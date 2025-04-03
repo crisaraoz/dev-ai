@@ -2,7 +2,9 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { useTheme } from "next-themes";
-import { Code2 } from "lucide-react";
+import { Code2, Maximize2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { LayoutGrid } from "lucide-react";
 
 // Importación de componentes
 import Sidebar from "./components/Sidebar";
@@ -14,10 +16,12 @@ import LanguageSelector from "./components/LanguageSelector";
 import Footer from "./components/Footer";
 import YouTubePlayer from "./components/YouTubePlayer";
 import YoutubeResume from "../components/YoutubeResume";
+import DocumentProcessor from "../components/DocumentProcessor";
 
 export default function Home() {
   const [code, setCode] = useState("");
   const [result, setResult] = useState("");
+  const [videoResult, setVideoResult] = useState("");
   const [language, setLanguage] = useState("javascript");
   const [testFramework, setTestFramework] = useState("Jest");
   const [testType, setTestType] = useState("unit");
@@ -58,9 +62,9 @@ export default function Home() {
   const [previousScrollPosition, setPreviousScrollPosition] = useState<number>(0);
   const [userScrolling, setUserScrolling] = useState<boolean>(false);
   const scrollTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const [showYoutubeResume, setShowYoutubeResume] = useState(false);
-  const [youtubeResumePosition, setYoutubeResumePosition] = useState({ x: 0, y: 0 });
-  const [youtubeResumeSize, setYoutubeResumeSize] = useState({ width: 600, height: 250 });
+  const [youtubeResumePosition, setYoutubeResumePosition] = useState({ x: 20, y: 500 });
+  const [youtubeResumeSize, setYoutubeResumeSize] = useState({ width: 500, height: 250 });
+  const [activeFeature, setActiveFeature] = useState<'code' | 'youtube' | 'docs'>('code');
 
   // Asegurarse de que la UI se renderiza correctamente después de cargar
   useEffect(() => {
@@ -76,6 +80,14 @@ export default function Home() {
       }
     }
   }, [selectedMessage, messages]);
+
+  // Efecto para limpiar el video al cambiar a la pestaña de Code
+  useEffect(() => {
+    if (activeFeature === 'code') {
+      setVideoUrl(null);
+      setVideoResult("");
+    }
+  }, [activeFeature]);
 
   // Efecto para detectar cuando el usuario está haciendo scroll manualmente
   useEffect(() => {
@@ -109,12 +121,12 @@ export default function Home() {
         clearTimeout(scrollTimerRef.current);
       }
     };
-  }, [result]); // Recrear este efecto cuando cambia el resultado (nueva transcripción)
+  }, [videoResult]); // Recrear este efecto cuando cambia la transcripción del video
 
   // Segundo efecto para asegurarse de que la línea activa se mantenga resaltada
   useEffect(() => {
     // Solo ejecutar cuando hay resultado y tiempo de video
-    if (!result || currentVideoTime <= 0) return;
+    if (!videoResult || currentVideoTime <= 0) return;
     
     // Crear una función para actualizar el resaltado
     const updateHighlight = () => {
@@ -123,7 +135,7 @@ export default function Home() {
       const seconds = Math.floor(currentVideoTime % 60);
       const timeString = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
       
-      const lines = result.split('\n');
+      const lines = videoResult.split('\n');
       let closestLineIndex = -1;
       let closestTimeDiff = Infinity;
       
@@ -232,8 +244,6 @@ export default function Home() {
       if (closestLineIndex >= 0) {
         const lineElement = document.getElementById(`transcript-line-${closestLineIndex}`);
         if (lineElement) {
-          console.log(`Resaltando línea: ${closestLineIndex} para tiempo ${timeString}`);
-          
           // Aplicar clase y también estilos directos
           lineElement.classList.add('transcript-line-active');
           applyActiveStyle(lineElement);
@@ -272,12 +282,12 @@ export default function Home() {
     return () => {
       clearInterval(intervalId);
     };
-  }, [result, currentVideoTime, autoScroll, userScrolling]);
+  }, [videoResult, currentVideoTime, autoScroll, userScrolling]);
 
   // Observador para detectar cambios en el DOM y asegurar que el resaltado se mantenga
   useEffect(() => {
     // Solo ejecutar cuando hay resultado
-    if (!result) return;
+    if (!videoResult) return;
     
     // Configurar un observador del DOM para asegurarse de que el resaltado se mantenga
     const observer = new MutationObserver((mutations) => {
@@ -289,8 +299,6 @@ export default function Home() {
             // Si no hay línea resaltada, forzar una actualización
             const minutes = Math.floor(currentVideoTime / 60);
             const seconds = Math.floor(currentVideoTime % 60);
-            console.log(`Forzando actualización de resaltado para tiempo ${minutes}:${seconds}`);
-            
             // Usar un pequeño retardo para asegurarse de que todo está renderizado
             setTimeout(() => {
               const event = new CustomEvent('forceHighlightUpdate', { detail: { time: currentVideoTime } });
@@ -329,7 +337,7 @@ export default function Home() {
       observer.disconnect();
       window.removeEventListener('forceHighlightUpdate', forceUpdateHandler);
     };
-  }, [result, currentVideoTime]);
+  }, [videoResult, currentVideoTime]);
 
   // Verificar si una línea es visible
   const isElementInViewport = (el: Element, container: Element) => {
@@ -507,75 +515,32 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
   };
 
   const startNewConversation = () => {
-    const newId = Date.now().toString();
+    const newId = String(conversations.length + 1);
     const newConversation = {
       id: newId,
-      title: "New conversation",
+      title: `Nueva conversación ${newId}`,
       messages: [],
-      date: "Today"
+      date: "Hoy"
     };
-    
-    setConversations([newConversation, ...conversations]);
+    setConversations([...conversations, newConversation]);
     setActiveConversation(newId);
-    
-    // Limpiar todos los estados primero
-    setMessages([]);
-    setCode("");
-    
-    // Importante: Limpiar primero el URL del video para que los componentes se desmonte correctamente
-    setVideoUrl(null);
-    
-    // Esperar un pequeño tiempo para asegurarse que los efectos relacionados al video se completen
-    setTimeout(() => {
-      setResult("");
-      setSelectedMessage(null);
-      setLanguage("javascript"); // Valor predeterminado
-      setExplanationLevel("mid"); // Valor predeterminado
-      setActiveTab("refactor"); // Restablecer la pestaña activa
-      setCurrentVideoTime(0); // Reiniciar el tiempo del video
-      setVideoSeekTime(undefined); // Reiniciar el tiempo de búsqueda
-      setIsLoading(false); // Asegurarse de que no se muestre el indicador de carga
-    }, 50);
   };
 
   const selectConversation = (id: string) => {
     setActiveConversation(id);
-    
-    // Limpiar todos los estados primero
-    setMessages([]);
-    setCode("");
-    
-    // Importante: Limpiar primero el URL del video para que los componentes se desmonte correctamente
-    setVideoUrl(null);
-    
-    // Esperar un pequeño tiempo para asegurarse que los efectos relacionados al video se completen
-    setTimeout(() => {
-      setResult("");
-      setSelectedMessage(null);
-      setActiveTab("refactor");
-      setCurrentVideoTime(0);
-      setVideoSeekTime(undefined);
-      setIsLoading(false);
-    }, 50);
+    setSidebarOpen(false);
   };
 
   const deleteConversation = (id: string) => {
-    setConversations(prevConversations => prevConversations.filter(conv => conv.id !== id));
-    
-    // Si la conversación eliminada es la activa, seleccionar otra o crear una nueva
+    setConversations(conversations.filter(conv => conv.id !== id));
     if (activeConversation === id) {
-      const remainingConversations = conversations.filter(conv => conv.id !== id);
-      if (remainingConversations.length > 0) {
-        selectConversation(remainingConversations[0].id);
-      } else {
-        startNewConversation();
-      }
+      setActiveConversation(conversations[0]?.id || null);
     }
   };
 
   const handleYouTubeUrl = async (url: string) => {
     setVideoUrl(url);
-    setActiveTab("transcript");
+    setActiveFeature('youtube'); // Cambiar automáticamente a la vista de YouTube
     setIsLoading(true);
     
     try {
@@ -586,8 +551,7 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
         },
         body: JSON.stringify({ 
           video_url: url,
-          // No especificamos language_code para que el backend use su lógica de fallback
-          use_generated: true   // Permitir transcripciones auto-generadas
+          use_generated: true
         })
       });
 
@@ -597,19 +561,12 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
       }
 
       const data = await response.json();
-      setResult(data.transcription);
+      setVideoResult(data.transcription);
     } catch (error: any) {
       console.error('Error:', error);
-      setResult(`Error al procesar el video: ${error.message || 'Error desconocido'}`);
+      setVideoResult(`Error al procesar el video: ${error.message || 'Error desconocido'}`);
     } finally {
       setIsLoading(false);
-    }
-
-    // Si es una URL de YouTube válida, también ofrecemos la opción de resumir
-    if (url.includes('youtube.com') || url.includes('youtu.be')) {
-      setShowYoutubeResume(true);
-    } else {
-      setShowYoutubeResume(false);
     }
   };
 
@@ -621,11 +578,14 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
 
   // Función para manejar los clics en los timestamps de la transcripción
   const handleTranscriptTimeClick = (timeString: string) => {
-    if (timeString.match(/^\d{2}:\d{2}/)) {
-      const [minutes, seconds] = timeString.split(':').map(Number);
+    // Extraer solo el timestamp si se pasa una línea completa
+    const timeMatch = timeString.match(/^(\d{2}:\d{2})/);
+    const timestamp = timeMatch ? timeMatch[1] : timeString;
+    
+    // Verificar formato válido de timestamp (MM:SS)
+    if (timestamp.match(/^\d{2}:\d{2}$/)) {
+      const [minutes, seconds] = timestamp.split(':').map(Number);
       const timeInSeconds = minutes * 60 + seconds;
-      console.log(`Clicking timestamp ${timeString}, seeking to ${timeInSeconds} seconds`);
-      
       // Reset para forzar actualización incluso si el valor es el mismo
       setVideoSeekTime(undefined);
       
@@ -637,95 +597,407 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      {/* Sidebar Component */}
-      <Sidebar 
-        sidebarOpen={sidebarOpen} 
-        toggleSidebar={toggleSidebar} 
-        conversations={conversations} 
-        activeConversation={activeConversation} 
-        startNewConversation={startNewConversation}
-        selectConversation={selectConversation}
-        deleteConversation={deleteConversation}
-      />
+    <div className="min-h-screen bg-white dark:bg-black flex flex-col">
+      <div className="flex-1 flex flex-col">
+        {/* Button for sidebar */}
+        <div className="fixed top-3 left-3 z-50">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleSidebar}
+            className="rounded-sm bg-transparent dark:bg-transparent border-0 hover:bg-gray-100 dark:hover:bg-gray-800 p-0 w-8 h-8 flex items-center justify-center"
+            title={sidebarOpen ? "Hide chats" : "Show chats"}
+          >
+            <LayoutGrid className="h-5 w-5 text-gray-700 dark:text-gray-300" />
+          </Button>
+        </div>
 
-      <div className={`transition-all duration-300 flex flex-col flex-grow ${sidebarOpen ? 'md:ml-64' : 'ml-0'}`}>
-        {/* Header Component */}
-        <Header theme={theme} setTheme={setTheme} />
+        <Header
+          onToggleFullscreen={toggleFullscreen}
+          isFullscreen={isFullscreen}
+        />
 
-        <main className="container mx-auto px-4 py-8 flex-grow">
-          <div className={`grid ${isFullscreen ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2'} gap-6 relative`}>
-            <div className={`space-y-4 ${isFullscreen ? 'hidden' : ''}`}>
-              {/* Language Selector Component */}
-              <LanguageSelector 
-                language={language} 
-                setLanguage={setLanguage}
-                explanationLevel={explanationLevel}
-                setExplanationLevel={setExplanationLevel}
-                isDisabled={activeTab === "transcript" || !!videoUrl}
-              />
-              
-              {/* YouTube Player / Welcome Screen */}
-              <div className="bg-card rounded-lg overflow-hidden border">
-                <YouTubePlayer 
-                  videoUrl={videoUrl} 
-                  onTimeUpdate={handleVideoTimeUpdate}
-                  seekTo={videoSeekTime}
-                  isProcessing={isLoading}
-                  onYouTubeUrl={handleYouTubeUrl}
-                />
-              </div>
-              
-              {/* Input Area Component */}
-              <InputArea 
-                code={code}
-                setCode={setCode}
-                handleProcess={handleProcess}
-                selectedMessage={selectedMessage}
-                isLoading={isLoading}
-                onYouTubeUrl={handleYouTubeUrl}
-              />
-            </div>
+        <main className="flex-1 overflow-hidden">
+          <div className="h-full flex">
+            <Sidebar 
+              isOpen={sidebarOpen}
+              onClose={() => setSidebarOpen(false)}
+              conversations={conversations} 
+              activeConversation={activeConversation} 
+              onSelectConversation={selectConversation}
+              onDeleteConversation={deleteConversation}
+              onNewConversation={startNewConversation}
+            />
 
-            {/* Results Area Component */}
-            <div className={`${isFullscreen ? 'w-full' : ''} space-y-4 results-container`}>
-              <ResultsArea 
-                activeTab={activeTab} 
-                setActiveTab={setActiveTab}
-                result={result}
-                language={language}
-                testFramework={testFramework}
-                setTestFramework={setTestFramework}
-                testType={testType}
-                setTestType={setTestType}
-                isFullscreen={isFullscreen}
-                toggleFullscreen={toggleFullscreen}
-                handleCopy={handleCopy}
-                handleDownload={handleDownload}
-                isLoading={isLoading}
-                isYouTubeMode={!!videoUrl}
-                onTimeClick={handleTranscriptTimeClick}
-                autoScroll={autoScroll}
-                setAutoScroll={setAutoScroll}
-              />
-              
-              {/* Componente para resumir videos de YouTube */}
-              {showYoutubeResume && videoUrl && (
-                <div className="relative w-full">
-                  <YoutubeResume 
-                    initialTranscription={result}
-                    defaultPosition={youtubeResumePosition}
-                    defaultSize={youtubeResumeSize}
-                    onPositionChange={setYoutubeResumePosition}
-                    onSizeChange={setYoutubeResumeSize}
-                  />
+            <div className="flex-1 flex flex-col">
+              {/* Feature Selector */}
+              <div className="border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-black">
+                <div className="max-w-7xl mx-auto">
+                  <div className="flex justify-center space-x-4 p-4">
+                    <button
+                      onClick={() => setActiveFeature('code')}
+                      className={`px-4 py-2 rounded-lg transition-colors ${
+                        activeFeature === 'code'
+                          ? 'bg-blue-500 text-white'
+                          : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+                      }`}
+                    >
+                      Code
+                    </button>
+                    <button
+                      onClick={() => setActiveFeature('youtube')}
+                      className={`px-4 py-2 rounded-lg transition-colors ${
+                        activeFeature === 'youtube'
+                          ? 'bg-blue-500 text-white'
+                          : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+                      }`}
+                    >
+                      YouTube
+                    </button>
+                    <button
+                      onClick={() => setActiveFeature('docs')}
+                      className={`px-4 py-2 rounded-lg transition-colors ${
+                        activeFeature === 'docs'
+                          ? 'bg-blue-500 text-white'
+                          : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+                      }`}
+                    >
+                      Documentation
+                    </button>
+                  </div>
                 </div>
-              )}
+              </div>
+
+              {/* Main Content Area */}
+              <div className="flex-1 overflow-auto p-4 bg-white dark:bg-black">
+                <div className="max-w-7xl mx-auto pb-16">
+                  {activeFeature === 'code' && (
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      {/* Left Column */}
+                      <div className="space-y-6">
+                        <div className="flex items-center gap-4">
+                          <LanguageSelector 
+                            language={language} 
+                            setLanguage={setLanguage}
+                            explanationLevel={explanationLevel}
+                            setExplanationLevel={setExplanationLevel}
+                            isDisabled={activeTab === "transcript" || !!videoUrl}
+                          />
+                        </div>
+                        <div className="bg-card rounded-lg overflow-hidden border">
+                          <YouTubePlayer 
+                            videoUrl={videoUrl} 
+                            onTimeUpdate={handleVideoTimeUpdate}
+                            seekTo={videoSeekTime}
+                            isProcessing={isLoading}
+                            onYouTubeUrl={handleYouTubeUrl}
+                          />
+                        </div>
+                        <InputArea 
+                          code={code}
+                          setCode={setCode}
+                          handleProcess={handleProcess}
+                          selectedMessage={selectedMessage}
+                          isLoading={isLoading}
+                          onYouTubeUrl={handleYouTubeUrl}
+                        />
+                      </div>
+                      
+                      {/* Right Column */}
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <select
+                            value={activeTab}
+                            onChange={(e) => setActiveTab(e.target.value)}
+                            className="text-gray-700 dark:text-gray-300 rounded-lg px-3 py-2 border border-gray-200 dark:border-gray-700 bg-transparent"
+                            style={{ 
+                              WebkitAppearance: 'none',
+                              MozAppearance: 'none',
+                              appearance: 'none',
+                              backgroundImage: `url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23${theme === 'dark' ? '888' : '444'}%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E")`,
+                              backgroundRepeat: 'no-repeat',
+                              backgroundPosition: 'right 0.5rem center',
+                              backgroundSize: '0.65em auto',
+                              paddingRight: '2.5rem'
+                            }}
+                          >
+                            <option value="refactor" className="bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300">Refactor</option>
+                            <option value="test" className="bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300">Test</option>
+                            <option value="explain" className="bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300">Explain</option>
+                          </select>
+                        </div>
+
+                        {/* Add style for dark mode dropdown options globally */}
+                        {theme === 'dark' && (
+                          <style jsx global>{`
+                            option {
+                              background-color: #000000 !important;
+                              color: #d1d5db !important;
+                            }
+                            
+                            select {
+                              background-color: #000000 !important;
+                              color: #d1d5db !important;
+                              border-color: #333333 !important;
+                            }
+                            
+                            select option {
+                              background-color: #000000 !important;
+                              color: #d1d5db !important;
+                              padding: 10px 14px !important;
+                              border-bottom: 1px solid #333333 !important;
+                            }
+                            
+                            /* For Firefox */
+                            select:-moz-focusring {
+                              color: transparent !important;
+                              text-shadow: 0 0 0 #d1d5db !important;
+                            }
+                            
+                            /* For Chrome/Safari */
+                            select option:checked,
+                            select option:hover {
+                              background-color: #333333 !important;
+                              color: #cccccc !important;
+                            }
+                            
+                            /* Enhanced dropdown appearance */
+                            select {
+                              box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2) !important;
+                            }
+                            
+                            /* Make options look more like a menu */
+                            select option {
+                              margin: 2px 0 !important;
+                              border-radius: 4px !important;
+                            }
+                            
+                            /* Fix for Webkit browsers */
+                            @media screen and (-webkit-min-device-pixel-ratio:0) { 
+                              select {
+                                border-radius: 4px !important;
+                              }
+                              
+                              select option {
+                                background-color: #000000 !important;
+                              }
+                              
+                              select option:checked {
+                                background-color: #222222 !important;
+                              }
+                            }
+                          `}</style>
+                        )}
+
+                        <ResultsArea
+                          result={result}
+                          isLoading={isLoading}
+                          showTimestamps={activeTab === "transcript"}
+                          onTimeClick={handleTranscriptTimeClick}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {activeFeature === 'youtube' && (
+                    <>
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        {/* Left Column */}
+                        <div className="flex flex-col space-y-6">
+                          
+                          {videoUrl ? (
+                            <div className="bg-card rounded-lg overflow-hidden border flex-1">
+                              <YouTubePlayer
+                                videoUrl={videoUrl}
+                                onTimeUpdate={handleVideoTimeUpdate}
+                                seekTo={videoSeekTime}
+                                isProcessing={isLoading}
+                                onYouTubeUrl={handleYouTubeUrl}
+                              />
+                            </div>
+                          ) : (
+                            <div className="bg-white dark:bg-black rounded-lg flex flex-col items-center justify-center h-[300px] p-8 border border-gray-200 dark:border-gray-800 flex-1">
+                              <div className="text-4xl font-bold mb-4 text-gray-700 dark:text-gray-300">&lt;/&gt;</div>
+                              <h1 className="text-2xl font-bold mb-8 text-center text-gray-900 dark:text-white">Welcome to AI Dev Tools</h1>
+                              <div 
+                                className="w-full max-w-md bg-gray-100 dark:bg-black p-4 rounded-lg mb-4 border border-dashed border-gray-400 dark:border-gray-500 hover:border-white dark:hover:border-white transition-all duration-300 cursor-pointer"
+                                onDragOver={(e) => {
+                                  e.preventDefault();
+                                  e.currentTarget.classList.add('border-white');
+                                  e.currentTarget.classList.add('dark:border-white');
+                                  e.currentTarget.classList.add('shadow-[0_0_10px_rgba(255,255,255,0.4)]');
+                                  e.currentTarget.classList.add('bg-gray-200');
+                                  e.currentTarget.classList.add('dark:bg-gray-900');
+                                }}
+                                onDragLeave={(e) => {
+                                  e.preventDefault();
+                                  e.currentTarget.classList.remove('border-white');
+                                  e.currentTarget.classList.remove('dark:border-white');
+                                  e.currentTarget.classList.remove('shadow-[0_0_10px_rgba(255,255,255,0.4)]');
+                                  e.currentTarget.classList.remove('bg-gray-200');
+                                  e.currentTarget.classList.remove('dark:bg-gray-900');
+                                }}
+                                onDrop={(e) => {
+                                  e.preventDefault();
+                                  e.currentTarget.classList.remove('border-white');
+                                  e.currentTarget.classList.remove('dark:border-white');
+                                  e.currentTarget.classList.remove('shadow-[0_0_10px_rgba(255,255,255,0.4)]');
+                                  e.currentTarget.classList.remove('bg-gray-200');
+                                  e.currentTarget.classList.remove('dark:bg-gray-900');
+                                  const text = e.dataTransfer.getData('text');
+                                  if (text.match(/^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+$/)) {
+                                    handleYouTubeUrl(text);
+                                  }
+                                }}
+                              >
+                                <p className="text-center text-gray-800 dark:text-white">Drag & drop a YouTube URL here for transcription</p>
+                              </div>
+                            </div>
+                          )}
+                          
+                          <div className="flex-shrink-0">
+                            <InputArea 
+                              code={code}
+                              setCode={setCode}
+                              handleProcess={handleProcess}
+                              selectedMessage={selectedMessage}
+                              isLoading={isLoading}
+                              onYouTubeUrl={handleYouTubeUrl}
+                            />
+                          </div>
+                        </div>
+                
+                        {/* Right Column - Transcript */}
+                        <div className="flex flex-col h-auto">
+                          <div className="flex items-center justify-between mb-4">
+                            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Video Transcript</h2>
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm text-gray-700 dark:text-gray-300">Auto-scroll</span>
+                              <button
+                                onClick={() => setAutoScroll(!autoScroll)}
+                                className={`px-2 py-1 text-xs rounded ${
+                                  autoScroll ? 'bg-blue-500 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                                }`}
+                              >
+                                {autoScroll ? 'ON' : 'OFF'}
+                              </button>
+                            </div>
+                          </div>
+
+                          <div className="bg-card border border-gray-200 dark:border-gray-800 rounded-lg overflow-auto relative h-[520px]">
+                            {/* Transcripción */}
+                            <div className="h-full p-4 overflow-auto transcript-scroll-area">
+                              {isLoading ? (
+                                <div className="flex items-center justify-center h-full">
+                                  <div className="animate-spin h-10 w-10 border-4 border-t-primary border-r-transparent border-b-primary border-l-transparent rounded-full"></div>
+                                </div>
+                              ) : videoResult ? (
+                                <div className="space-y-1">
+                                  {videoResult.split('\n').map((line, i) => (
+                                    <div 
+                                      key={i}
+                                      id={`transcript-line-${i}`}
+                                      className="py-1 px-1 rounded transition-colors"
+                                    >
+                                      {line.match(/^(\d{2}:\d{2})/) ? (
+                                        <div className="flex items-start">
+                                          <span 
+                                            className="inline-block bg-white text-black text-xs font-mono py-0.5 px-1.5 rounded mr-2 cursor-pointer hover:bg-gray-200"
+                                            onClick={() => {
+                                              const timeMatch = line.match(/^(\d{2}:\d{2})/);
+                                              if (timeMatch && timeMatch[1]) {
+                                                handleTranscriptTimeClick(timeMatch[1]);
+                                              }
+                                            }}
+                                          >
+                                            {(() => {
+                                              const match = line.match(/^(\d{2}:\d{2})/);
+                                              return match ? match[1] : "00:00";
+                                            })()}
+                                          </span>
+                                          <span>{line.replace(/^\d{2}:\d{2}\s*/, '')}</span>
+                                        </div>
+                                      ) : (
+                                        line
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : (
+                                <div className="text-gray-500 dark:text-gray-400 text-center h-full flex items-center justify-center">
+                                  Enter a YouTube URL to view the transcription
+                                </div>
+                              )}
+                            </div>
+                            
+                            {/* Botones de acción para la transcripción */}
+                            {videoResult && (
+                              <div className="absolute bottom-2 right-2 flex space-x-2 z-20">
+                                <button 
+                                  className="p-2 bg-gray-100 dark:bg-gray-800 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors shadow-md"
+                                  onClick={() => {
+                                    navigator.clipboard.writeText(videoResult);
+                                  }}
+                                  title="Copy transcription"
+                                >
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-600 dark:text-gray-300">
+                                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                                  </svg>
+                                </button>
+                                <button 
+                                  className="p-2 bg-gray-100 dark:bg-gray-800 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors shadow-md"
+                                  onClick={() => {
+                                    const blob = new Blob([videoResult], { type: "text/plain" });
+                                    const url = window.URL.createObjectURL(blob);
+                                    const a = document.createElement("a");
+                                    a.href = url;
+                                    const fileName = videoUrl ? 
+                                      `transcription_${new Date().toISOString().slice(0, 10)}` : 
+                                      "transcription";
+                                    a.download = `${fileName}.txt`;
+                                    a.click();
+                                  }}
+                                  title="Descargar transcripción"
+                                >
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-600 dark:text-gray-300">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                    <polyline points="7 10 12 15 17 10"></polyline>
+                                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                                  </svg>
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Summarize component in bottom area - outside the grid */}
+                      <div className="mt-8">
+                        {videoResult && (
+                          <YoutubeResume 
+                            initialTranscription={videoResult} 
+                            defaultPosition={{ x: 0, y: 0 }}
+                            defaultSize={youtubeResumeSize}
+                            onPositionChange={setYoutubeResumePosition}
+                            onSizeChange={setYoutubeResumeSize}
+                          />
+                        )}
+                      </div>
+                    </>
+                  )}
+
+                  {activeFeature === 'docs' && (
+                    <div className="space-y-4">
+                      <DocumentProcessor />
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         </main>
         
-        {/* Footer Component */}
         <Footer />
       </div>
     </div>

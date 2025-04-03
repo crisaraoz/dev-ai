@@ -4,7 +4,7 @@ import { Github, Linkedin } from "lucide-react";
 
 const Footer: React.FC = () => {
   return (
-    <footer className="w-full py-4 border-t border-border mt-auto">
+    <footer className="w-full py-4 border-t border-border bg-background sticky bottom-0">
       <div className="container mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-4">
         <p className="text-sm text-muted-foreground">
           Developed by CrisAraoz
