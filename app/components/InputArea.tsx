@@ -69,7 +69,7 @@ const InputArea: React.FC<InputAreaProps> = ({
           onChange={(e) => setCode(e.target.value)}
           onPaste={handlePaste}
           placeholder="Enter your code or question here... You can also drag & drop a YouTube URL"
-          className="min-h-[100px] font-mono"
+          className="min-h-[100px] font-mono resize-none"
         />
         {isDragging && (
           <div className="absolute inset-0 bg-background/80 flex items-center justify-center rounded-md">
