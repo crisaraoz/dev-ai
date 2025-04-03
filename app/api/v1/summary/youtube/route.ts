@@ -12,7 +12,7 @@ function extractYoutubeVideoId(url: string): string | null {
 async function getVideoTranscript(videoId: string): Promise<string> {
   try {
     // Usar el endpoint de transcripción existente
-    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || ''}/api/summary/youtube`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || ''}/api/v1/summary/youtube`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

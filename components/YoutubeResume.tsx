@@ -6,17 +6,48 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/
 import { Alert, AlertDescription } from "./ui/alert";
 import { Loader2, FileText, RefreshCw } from "lucide-react";
 import { Textarea } from "./ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+import Draggable from 'react-draggable';
+import { ResizableBox, ResizeCallbackData } from 'react-resizable';
+import 'react-resizable/css/styles.css';
 
 interface YoutubeResumeProps {
   initialTranscription?: string;
+  defaultPosition?: { x: number; y: number };
+  defaultSize?: { width: number; height: number };
+  onPositionChange?: (position: { x: number; y: number }) => void;
+  onSizeChange?: (size: { width: number; height: number }) => void;
 }
 
-export default function YoutubeResume({ initialTranscription = "" }: YoutubeResumeProps) {
+const languages = [
+  { value: "en", label: "English" },
+  { value: "es", label: "Spanish" },
+  { value: "fr", label: "French" },
+  { value: "de", label: "German" },
+  { value: "it", label: "Italian" },
+  { value: "pt", label: "Portuguese" },
+  { value: "zh", label: "Chinese" },
+  { value: "ja", label: "Japanese" },
+  { value: "ko", label: "Korean" },
+  { value: "ru", label: "Russian" },
+];
+
+export default function YoutubeResume({ 
+  initialTranscription = "", 
+  defaultPosition = { x: 0, y: 0 },
+  defaultSize = { width: 800, height: 150 },
+  onPositionChange,
+  onSizeChange
+}: YoutubeResumeProps) {
   const [transcription, setTranscription] = useState(initialTranscription);
   const [displayedTranscription, setDisplayedTranscription] = useState("");
   const [summary, setSummary] = useState("");
   const [summarizingText, setSummarizingText] = useState(false);
   const [error, setError] = useState("");
+  const [selectedLanguage, setSelectedLanguage] = useState("es");
+  const [mounted, setMounted] = useState(false);
+  const [size, setSize] = useState({ width: 0, height: 0 });
+  const [position, setPosition] = useState(defaultPosition);
 
   // Función para limpiar la transcripción (quitar timestamps)
   const cleanTranscription = (text: string): string => {
@@ -24,12 +55,24 @@ export default function YoutubeResume({ initialTranscription = "" }: YoutubeResu
     return text.replace(/^\d{2}:\d{2}\s/gm, '');
   };
 
+  // Efecto para inicializar el tamaño una vez que el componente está montado
+  useEffect(() => {
+    const container = document.querySelector('.results-container');
+    if (container && !mounted) {
+      const containerWidth = container.getBoundingClientRect().width;
+      setSize({ width: containerWidth, height: summary ? 400 : 150 });
+      setMounted(true);
+    }
+  }, [defaultSize.height, mounted, summary]);
+
   // Efecto para actualizar cuando cambia la transcripción inicial
   useEffect(() => {
     if (initialTranscription !== transcription) {
       setTranscription(initialTranscription);
+      setSummary("");
+      setError("");
     }
-  }, [initialTranscription]);
+  }, [initialTranscription, transcription]);
 
   // Efecto para limpiar automáticamente la transcripción cuando cambia
   useEffect(() => {
@@ -37,8 +80,22 @@ export default function YoutubeResume({ initialTranscription = "" }: YoutubeResu
       setDisplayedTranscription(cleanTranscription(transcription));
     } else {
       setDisplayedTranscription("");
+      setSummary("");
+      setError("");
     }
   }, [transcription]);
+
+  // Efecto para ajustar la altura cuando hay resumen
+  useEffect(() => {
+    if (summary) {
+      setSize(prev => ({ ...prev, height: 400 }));
+    }
+  }, [summary]);
+
+  // No renderizar nada hasta que tengamos el tamaño correcto
+  if (!mounted || size.width === 0) {
+    return null;
+  }
 
   // Función para resumir un texto directamente
   const handleSummarizeText = async (text: string) => {
@@ -60,7 +117,7 @@ export default function YoutubeResume({ initialTranscription = "" }: YoutubeResu
         },
         body: JSON.stringify({
           transcription: text,
-          language_code: "es",
+          language_code: selectedLanguage,
           max_length: 500
         }),
       });
@@ -81,68 +138,114 @@ export default function YoutubeResume({ initialTranscription = "" }: YoutubeResu
   };
 
   return (
-    <Card className="w-full">
-      <CardHeader className="pb-0">
-        <div className="flex justify-between items-center w-full">
-          <CardTitle className="text-xl tracking-tight flex items-center">
-            <FileText className="h-5 w-5 mr-2" />
-            Summarize YouTube Video
-          </CardTitle>
-        </div>
-        <CardDescription>
-          Get an AI-generated summary of the video content
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          <Textarea 
-            placeholder="Paste the video transcription here..." 
-            className="min-h-[150px]"
-            value={displayedTranscription}
-            onChange={(e) => {
-              setDisplayedTranscription(e.target.value);
-              // Actualizamos también la transcripción original para mantener sincronización
-              setTranscription(e.target.value);
-            }}
-          />
-
-          <div className="flex space-x-2">
-            <Button 
-              type="button"
-              onClick={() => handleSummarizeText(displayedTranscription)}
-              className="flex items-center gap-1 w-full"
-              disabled={!displayedTranscription || summarizingText}
-            >
-              {summarizingText ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  <span>Resumiendo...</span>
-                </>
-              ) : (
-                <>
-                  <RefreshCw className="h-4 w-4" />
-                  <span>Summarize this text</span>
-                </>
-              )}
-            </Button>
-          </div>
-
-          {error && (
-            <Alert variant="destructive">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-
-          {summary && (
-            <div className="p-4 bg-muted rounded-md space-y-2">
-              <h3 className="font-medium">Video Summary:</h3>
-              <div className="text-sm whitespace-pre-line">
-                {summary}
+    <Draggable
+      handle=".drag-handle"
+      defaultPosition={defaultPosition}
+      onStop={(e, data) => {
+        const newPosition = { x: data.x, y: data.y };
+        setPosition(newPosition);
+        onPositionChange?.(newPosition);
+      }}
+      bounds="body"
+      position={position}
+    >
+      <div className="fixed" style={{ zIndex: 1000 }}>
+        <ResizableBox
+          width={size.width}
+          height={size.height}
+          onResize={(e: React.SyntheticEvent, data: ResizeCallbackData) => {
+            const newSize = {
+              width: data.size.width,
+              height: data.size.height
+            };
+            setSize(newSize);
+            onSizeChange?.(newSize);
+          }}
+          minConstraints={[300, 200]}
+          maxConstraints={[1000, 800]}
+          resizeHandles={['se']}
+          handle={<div className="absolute bottom-0 right-0 w-4 h-4 cursor-se-resize bg-primary/20 rounded-bl" />}
+        >
+          <Card className="border rounded-md shadow-lg w-full h-full">
+            <CardHeader className="pb-2 drag-handle cursor-move bg-card">
+              <div className="flex justify-between items-center w-full">
+                <CardTitle className="text-xl tracking-tight flex items-center">
+                  <FileText className="h-5 w-5 mr-2" />
+                  Summarize YouTube Video
+                </CardTitle>
               </div>
-            </div>
-          )}
-        </div>
-      </CardContent>
-    </Card>
+              <CardDescription className="text-sm">
+                Get an AI-generated summary of the video content
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-2 overflow-auto" style={{ height: 'calc(100% - 90px)' }}>
+              <div className="flex flex-col gap-2">
+                <Textarea 
+                  placeholder="Paste the video transcription here..." 
+                  className="resize-none w-full hidden"
+                  value={displayedTranscription}
+                  onChange={(e) => {
+                    setDisplayedTranscription(e.target.value);
+                    setTranscription(e.target.value);
+                  }}
+                />
+
+                <div className="flex space-x-2">
+                  <Select
+                    value={selectedLanguage}
+                    onValueChange={setSelectedLanguage}
+                  >
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Select language" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {languages.map((language) => (
+                        <SelectItem key={language.value} value={language.value}>
+                          {language.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  
+                  <Button 
+                    type="button"
+                    onClick={() => handleSummarizeText(displayedTranscription)}
+                    className="flex items-center gap-1 flex-1"
+                    disabled={!displayedTranscription || summarizingText}
+                  >
+                    {summarizingText ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <span>Summarizing...</span>
+                      </>
+                    ) : (
+                      <>
+                        <RefreshCw className="h-4 w-4" />
+                        <span>Summarize this video</span>
+                      </>
+                    )}
+                  </Button>
+                </div>
+
+                {error && (
+                  <Alert variant="destructive">
+                    <AlertDescription>{error}</AlertDescription>
+                  </Alert>
+                )}
+
+                {summary && (
+                  <div className="p-4 bg-muted rounded-md space-y-2">
+                    <h3 className="font-medium">Video Summary:</h3>
+                    <div className="text-sm whitespace-pre-line">
+                      {summary}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </ResizableBox>
+      </div>
+    </Draggable>
   );
 } 
