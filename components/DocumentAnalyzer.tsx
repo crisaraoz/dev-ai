@@ -354,13 +354,13 @@ export default function DocumentAnalyzer() {
 
   return (
     <div className="w-full max-w-4xl mx-auto space-y-6">
-      <div className="bg-slate-900 dark:bg-slate-900 rounded-md overflow-hidden shadow-md">
+      <div className="bg-white dark:bg-slate-900 border-gray-200 dark:border-gray-800 rounded-md overflow-hidden shadow-md">
         <div 
           className="flex items-center justify-between px-5 py-3 cursor-pointer"
           onClick={() => setIsDocAnalyzerCollapsed(!isDocAnalyzerCollapsed)}
         >
           <div className="flex items-center gap-2">
-            <h3 className="text-lg font-semibold text-white">
+            <h3 className="text-lg font-semibold text-black dark:text-white">
               Analyze Complete Web Documentation
             </h3>
           </div>
@@ -370,7 +370,7 @@ export default function DocumentAnalyzer() {
                 Ready
               </span>
             )}
-            <button className="text-white hover:text-blue-400 transition-colors focus:outline-none">
+            <button className="text-black dark:text-white hover:text-blue-100 dark:hover:text-blue-400 transition-colors focus:outline-none">
               <svg 
                 width="20" 
                 height="20" 
@@ -595,50 +595,13 @@ export default function DocumentAnalyzer() {
                           
                           // Procesar contenido normal
                           return (
-                            <p key={`${partIdx}-${idx}`} className="my-1.5">
-                              {renderFormattedText(paragraph)}
-                            </p>
+                            <p key={`${partIdx}-${idx}`} className="text-gray-800 dark:text-gray-200">{paragraph}</p>
                           );
                         })}
                       </div>
                     );
                   }
-                  return null;
                 })}
-              </div>
-              
-              {queryResponse.sources && queryResponse.sources.length > 0 && (
-                <div className="space-y-2 mt-4">
-                  <h4 className="font-semibold text-gray-900 dark:text-gray-100 text-md">Sources</h4>
-                  <ul className="list-disc pl-5 space-y-1">
-                    {queryResponse.sources.map((source, index) => (
-                      <li key={index} className="text-sm text-gray-600 dark:text-gray-300">
-                        {/* Procesar enlaces en las fuentes */}
-                        {source.includes('(') && source.includes(')') 
-                          ? source.replace(/\((.*?)\)/, '').trim()
-                          : source}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              
-              <div className="flex items-center mt-3 text-sm text-gray-500 dark:text-gray-400 border-t pt-2 border-gray-100 dark:border-gray-800">
-                <div className="flex items-center">
-                  <div className="w-16 bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 mr-2">
-                    <div 
-                      className={`h-1.5 rounded-full ${
-                        queryResponse.confidence > 0.7 
-                          ? 'bg-green-500' 
-                          : queryResponse.confidence > 0.4 
-                            ? 'bg-yellow-500' 
-                            : 'bg-red-500'
-                      }`}
-                      style={{ width: `${queryResponse.confidence * 100}%` }}
-                    ></div>
-                  </div>
-                  <span>Confidence: {(queryResponse.confidence * 100).toFixed(1)}%</span>
-                </div>
               </div>
             </div>
           </CardContent>
@@ -646,4 +609,4 @@ export default function DocumentAnalyzer() {
       )}
     </div>
   );
-} 
+}
