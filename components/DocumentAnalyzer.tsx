@@ -25,6 +25,111 @@ interface DocQueryResponse {
   confidence: number;
 }
 
+// Nuevas interfaces para el sistema de caché
+interface CacheEntry {
+  query: string;
+  response: DocQueryResponse;
+  timestamp: number;
+  url: string;
+}
+
+interface QueryCache {
+  [key: string]: CacheEntry;
+}
+
+// Constantes para la caché
+const CACHE_KEY = 'doc_query_cache';
+const CACHE_TTL = 24 * 60 * 60 * 1000; // 24 horas en milisegundos
+
+// Función para generar una clave de caché única por URL y consulta
+function generateCacheKey(url: string, query: string): string {
+  return `${url}:${query.toLowerCase().trim()}`;
+}
+
+// Función para guardar una respuesta en la caché
+function saveToCache(url: string, query: string, response: DocQueryResponse): void {
+  try {
+    // Obtener la caché actual
+    const cacheStr = localStorage.getItem(CACHE_KEY);
+    const cache: QueryCache = cacheStr ? JSON.parse(cacheStr) : {};
+    
+    // Crear una nueva entrada en la caché
+    const cacheKey = generateCacheKey(url, query);
+    cache[cacheKey] = {
+      query,
+      response,
+      timestamp: Date.now(),
+      url
+    };
+    
+    // Guardar la caché actualizada
+    localStorage.setItem(CACHE_KEY, JSON.stringify(cache));
+  } catch (error) {
+    console.error("Error al guardar en caché:", error);
+    // Si hay un error, limpiamos la caché para evitar problemas futuros
+    try {
+      localStorage.removeItem(CACHE_KEY);
+    } catch (e) {
+      console.error("No se pudo limpiar la caché:", e);
+    }
+  }
+}
+
+// Función para obtener una respuesta de la caché
+function getFromCache(url: string, query: string): DocQueryResponse | null {
+  try {
+    const cacheStr = localStorage.getItem(CACHE_KEY);
+    if (!cacheStr) return null;
+    
+    const cache: QueryCache = JSON.parse(cacheStr);
+    const cacheKey = generateCacheKey(url, query);
+    const cacheEntry = cache[cacheKey];
+    
+    // Verificar si la entrada existe y no ha expirado
+    if (cacheEntry && (Date.now() - cacheEntry.timestamp) < CACHE_TTL) {
+      return cacheEntry.response;
+    }
+    
+    // Si la entrada ha expirado, eliminarla
+    if (cacheEntry) {
+      delete cache[cacheKey];
+      localStorage.setItem(CACHE_KEY, JSON.stringify(cache));
+    }
+    
+    return null;
+  } catch (error) {
+    console.error("Error al obtener de la caché:", error);
+    return null;
+  }
+}
+
+// Función para limpiar entradas expiradas de la caché
+function cleanupCache(): void {
+  try {
+    const cacheStr = localStorage.getItem(CACHE_KEY);
+    if (!cacheStr) return;
+    
+    const cache: QueryCache = JSON.parse(cacheStr);
+    let hasChanges = false;
+    const now = Date.now();
+    
+    // Revisar todas las entradas y eliminar las expiradas
+    Object.keys(cache).forEach(key => {
+      if ((now - cache[key].timestamp) >= CACHE_TTL) {
+        delete cache[key];
+        hasChanges = true;
+      }
+    });
+    
+    // Si se eliminaron entradas, actualizar la caché
+    if (hasChanges) {
+      localStorage.setItem(CACHE_KEY, JSON.stringify(cache));
+    }
+  } catch (error) {
+    console.error("Error al limpiar la caché:", error);
+  }
+}
+
 // Función auxiliar para detectar el lenguaje en los bloques de código
 function detectLanguage(code: string): string {
   // Comprobar si hay un indicador de lenguaje en la primera línea
@@ -69,18 +174,18 @@ export default function DocumentAnalyzer() {
   const [serviceAvailable, setServiceAvailable] = useState<boolean | null>(null);
   const [isDocAnalyzerCollapsed, setIsDocAnalyzerCollapsed] = useState(false);
   const [maxPages, setMaxPages] = useState<number>(0);
+  const [cacheHit, setCacheHit] = useState<boolean>(false);
 
   // Añadir un efecto para verificar que el componente se monta correctamente
   useEffect(() => {
-    console.log("DocumentAnalyzer mounted");
     // Limpiar el error cuando se monta
     setError(null);
-    
+    // Limpiar entradas expiradas de la caché
+    cleanupCache();
     // Verificar la disponibilidad del servicio
     const checkServiceAvailability = async () => {
       try {
         const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:8000";
-        
         // Intentar verificar si el endpoint de docs/process está disponible usando OPTIONS
         // o si existe la documentación OpenAPI
         const response = await fetch(`${baseUrl}/openapi.json`, {
@@ -89,11 +194,9 @@ export default function DocumentAnalyzer() {
             "Accept": "application/json"
           }
         });
-        
         // Si la respuesta es 200 OK o incluso 404 (el servicio está respondiendo pero el endpoint no existe)
         // consideramos que el servicio está disponible
         if (response.ok || response.status === 404) {
-          console.log("Servicio backend disponible");
           setServiceAvailable(true);
           setError(null);
         } else if (response.status >= 500) {
@@ -103,7 +206,6 @@ export default function DocumentAnalyzer() {
           setError("El servicio de backend parece estar teniendo problemas. Por favor, intenta de nuevo más tarde.");
         } else {
           // En caso de otros errores, asumimos que el backend está disponible pero algo más está fallando
-          console.log("Backend responde pero con estado inusual:", response.status);
           setServiceAvailable(true);
           setError(null);
         }
@@ -154,8 +256,6 @@ export default function DocumentAnalyzer() {
         total_pages: 0,
         completion_percentage: 0
       });
-
-      console.log("Intentando analizar documentación:", url);
       // Iniciar el proceso de scraping en el backend
       const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:8000";
       
@@ -175,9 +275,6 @@ export default function DocumentAnalyzer() {
               max_pages: maxPages > 0 ? maxPages : null  // Número máximo de páginas (null = sin límite)
             }),
           });
-
-          console.log("Respuesta del servidor:", response.status, response.statusText);
-          
           if (!response.ok) {
             let errorMessage = `Error al analizar la documentación: ${response.status} ${response.statusText}`;
             try {
@@ -190,13 +287,9 @@ export default function DocumentAnalyzer() {
             }
             throw new Error(errorMessage);
           }
-
           const data = await response.json();
-          console.log("Datos recibidos:", data);
-          
           // Actualizar el estado con la respuesta del backend
           setScrapeStatus(data);
-          
           // Configurar un intervalo para verificar el estado del procesamiento
           if (data.status === "in_progress") {
             const interval = setInterval(async () => {
@@ -204,7 +297,6 @@ export default function DocumentAnalyzer() {
                 const statusResponse = await fetch(`${baseUrl}/api/v1/docs/scrape-status?url=${encodeURIComponent(url)}`);
                 if (statusResponse.ok) {
                   const statusData = await statusResponse.json();
-                  console.log("Actualización de estado:", statusData);
                   setScrapeStatus(statusData);
                   
                   // Si el procesamiento se completó o falló, detener el intervalo
@@ -254,8 +346,16 @@ export default function DocumentAnalyzer() {
     try {
       setLoading(true);
       setError(null);
-
-      console.log("Realizando consulta:", query, "para URL:", url);
+      setCacheHit(false);
+      
+      // Verificar si la respuesta está en caché
+      const cachedResponse = getFromCache(url, query);
+      if (cachedResponse) {
+        setQueryResponse(cachedResponse);
+        setCacheHit(true);
+        setLoading(false);
+        return;
+      }
       const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:8000";
       
       const requestData = {
@@ -264,9 +364,6 @@ export default function DocumentAnalyzer() {
         language_code: language,
         include_sources: true
       };
-      
-      console.log("Enviando datos:", JSON.stringify(requestData));
-      
       const response = await fetch(`${baseUrl}/api/v1/docs/ask`, {
         method: "POST",
         headers: {
@@ -274,9 +371,6 @@ export default function DocumentAnalyzer() {
         },
         body: JSON.stringify(requestData),
       });
-
-      console.log("Respuesta de consulta:", response.status, response.statusText);
-      
       if (!response.ok) {
         let errorMessage = `Error al realizar la consulta: ${response.status} ${response.statusText}`;
         try {
@@ -299,8 +393,11 @@ export default function DocumentAnalyzer() {
       }
 
       const data = await response.json();
-      console.log("Datos de respuesta:", data);
       setQueryResponse(data);
+      
+      // Guardar la respuesta en caché
+      saveToCache(url, query, data);
+      
     } catch (error) {
       console.error("Error completo:", error);
       setError(error instanceof Error ? error.message : "Error desconocido");
@@ -558,7 +655,15 @@ export default function DocumentAnalyzer() {
       {queryResponse && (
         <Card className="border-gray-200 dark:border-gray-800 bg-white dark:bg-black">
           <CardContent className="pt-6 space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Answer</h3>
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Answer</h3>
+              {cacheHit && (
+                <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 py-0.5 px-2 rounded-full">
+                  Cached response
+                </span>
+              )}
+            </div>
+            
             <div className="space-y-4">
               <div className="text-gray-800 dark:text-gray-200 p-4 bg-gray-50 dark:bg-gray-900 rounded-md">
                 {/* Procesamos el texto detectando bloques de código y formato Markdown */}

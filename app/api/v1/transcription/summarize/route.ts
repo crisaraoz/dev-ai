@@ -26,7 +26,6 @@ export async function POST(req: NextRequest) {
     // If transcription is not provided and we have a video URL, get the transcription
     if (!inputText && video_url) {
       try {
-        console.log(`Obteniendo transcripción para: ${video_url}`);
         const backendUrl = process.env.BACKEND_URL || 'http://localhost:8000';
         const transcriptionResponse = await fetch(
           `${backendUrl}/api/v1/transcription/youtube`, 
