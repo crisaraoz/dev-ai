@@ -25,6 +25,37 @@ interface DocQueryResponse {
   confidence: number;
 }
 
+// Función auxiliar para detectar el lenguaje en los bloques de código
+function detectLanguage(code: string): string {
+  // Comprobar si hay un indicador de lenguaje en la primera línea
+  const firstLine = code.trim().split('\n')[0];
+  if (firstLine.includes('typescript') || firstLine.includes('tsx')) return 'typescript';
+  if (firstLine.includes('javascript') || firstLine.includes('jsx')) return 'javascript';
+  if (firstLine.includes('html')) return 'html';
+  if (firstLine.includes('css')) return 'css';
+  if (firstLine.includes('json')) return 'json';
+  if (firstLine.includes('python')) return 'python';
+  
+  // Detección basada en contenido
+  if (code.includes('import React') || code.includes('const [') || code.includes('=>')) return 'javascript';
+  if (code.includes('<html>') || code.includes('</div>')) return 'html';
+  if (code.includes('const ') && code.includes(':') && code.includes('=>')) return 'typescript';
+  if (code.includes('def ') && code.includes(':') && !code.includes(';')) return 'python';
+  if (code.includes('{') && code.includes('}') && !code.includes('<') && !code.includes('>')) return 'json';
+  
+  // Por defecto
+  return 'plaintext';
+}
+
+// Función para normalizar el texto y evitar problemas de espaciado
+function normalizeText(text: string): string {
+  // Evitar espacios innecesarios entre líneas
+  return text
+    .replace(/\n{3,}/g, '\n\n') // Reemplazar múltiples saltos de línea con solo dos
+    .replace(/\s+$/gm, '') // Eliminar espacios al final de cada línea
+    .trim();
+}
+
 export default function DocumentAnalyzer() {
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
@@ -263,6 +294,49 @@ export default function DocumentAnalyzer() {
     }
   };
 
+  // Renderizar bloques de código con formato
+  const renderCodeBlock = (code: string, partIdx: number) => {
+    const codeContent = code.slice(3, -3).trim();
+    const language = detectLanguage(codeContent);
+    
+    // Separar la primera línea si contiene el identificador del lenguaje
+    let displayCode = codeContent;
+    if (displayCode.match(/^(typescript|javascript|html|css|json|python|jsx|tsx)(\s|$)/i)) {
+      displayCode = displayCode.substring(displayCode.indexOf('\n') + 1).trim();
+    }
+    
+    return (
+      <div key={partIdx} className="my-4 rounded-md overflow-hidden shadow-sm">
+        <div className="border-t-2 border-blue-500 dark:border-blue-400"></div>
+        <pre className="bg-slate-900 text-slate-50 p-4 font-mono text-sm leading-relaxed whitespace-pre-wrap overflow-x-auto">
+          <code>{displayCode}</code>
+        </pre>
+      </div>
+    );
+  };
+  
+  // Renderizar código en línea
+  const renderInlineCode = (code: string, partIdx: number) => {
+    return (
+      <code key={partIdx} className="bg-gray-200 dark:bg-gray-800 text-pink-600 dark:text-pink-400 px-1.5 py-0.5 rounded font-mono text-sm">
+        {code.slice(1, -1)}
+      </code>
+    );
+  };
+  
+  // Renderizar un párrafo con formato (negrita, código)
+  const renderFormattedText = (text: string) => {
+    return text.split(/(\*\*.*?\*\*|`.*?`)/g).map((part, i) => {
+      if (part.startsWith('**') && part.endsWith('**')) {
+        return <strong key={i} className="font-semibold">{part.slice(2, -2)}</strong>;
+      }
+      if (part.startsWith('`') && part.endsWith('`')) {
+        return <code key={i} className="bg-gray-200 dark:bg-gray-800 text-pink-600 dark:text-pink-400 px-1.5 py-0.5 rounded font-mono text-sm">{part.slice(1, -1)}</code>;
+      }
+      return <span key={i}>{part}</span>;
+    });
+  };
+
   return (
     <div className="w-full max-w-4xl mx-auto space-y-6">
       <Card className="border-gray-200 dark:border-gray-800 bg-white dark:bg-black">
@@ -393,7 +467,8 @@ export default function DocumentAnalyzer() {
                 placeholder="What would you like to know about this documentation? You can ask about any specific section or topic."
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                className="bg-transparent border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100 min-h-[100px]"
+                disabled={loading}
+                className={`bg-transparent border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100 min-h-[100px] ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
               />
               <p className="text-xs text-gray-500 dark:text-gray-400">
                 You can ask specific questions like if you have read all the documentation. The system has analyzed the complete content.
@@ -422,25 +497,85 @@ export default function DocumentAnalyzer() {
           <CardContent className="pt-6 space-y-4">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Answer</h3>
             <div className="space-y-4">
-              <div className="whitespace-pre-wrap text-gray-800 dark:text-gray-200 p-4 bg-gray-50 dark:bg-gray-900 rounded-md">
-                {queryResponse.answer}
+              <div className="text-gray-800 dark:text-gray-200 p-4 bg-gray-50 dark:bg-gray-900 rounded-md">
+                {/* Procesamos el texto detectando bloques de código y formato Markdown */}
+                {normalizeText(queryResponse.answer).split(/(`{3,}[\s\S]*?`{3,}|`[^`]+`)/g).map((part, partIdx) => {
+                  // Bloques de código (multi-línea)
+                  if (part.startsWith("```") && part.endsWith("```")) {
+                    return renderCodeBlock(part, partIdx);
+                  } 
+                  // Código en línea (entre comillas simples)
+                  else if (part.startsWith("`") && part.endsWith("`")) {
+                    return renderInlineCode(part, partIdx);
+                  } 
+                  // Texto normal
+                  else if (part.trim()) {
+                    // Procesar texto normal, manteniendo el flujo natural
+                    const paragraphs = part.split('\n').filter(p => p.trim() !== '');
+                    
+                    return (
+                      <div key={partIdx} className="space-y-2">
+                        {paragraphs.map((paragraph, idx) => {
+                          // Procesar listas numeradas (1. Item)
+                          if (/^\d+\.\s/.test(paragraph)) {
+                            return (
+                              <div key={`${partIdx}-${idx}`} className="ml-4 my-2">
+                                <div className="flex items-start">
+                                  <span className="font-bold mr-2">{paragraph.match(/^\d+\./)?.[0] || ''}</span>
+                                  <span>
+                                    {renderFormattedText(paragraph.replace(/^\d+\.\s/, ''))}
+                                  </span>
+                                </div>
+                              </div>
+                            );
+                          }
+                          
+                          // Procesar contenido normal
+                          return (
+                            <p key={`${partIdx}-${idx}`} className="my-1.5">
+                              {renderFormattedText(paragraph)}
+                            </p>
+                          );
+                        })}
+                      </div>
+                    );
+                  }
+                  return null;
+                })}
               </div>
               
               {queryResponse.sources && queryResponse.sources.length > 0 && (
-                <div className="space-y-2">
-                  <h4 className="font-medium text-gray-900 dark:text-gray-100">Sources</h4>
-                  <ul className="list-disc list-inside space-y-1">
+                <div className="space-y-2 mt-4">
+                  <h4 className="font-semibold text-gray-900 dark:text-gray-100 text-md">Sources</h4>
+                  <ul className="list-disc pl-5 space-y-1">
                     {queryResponse.sources.map((source, index) => (
                       <li key={index} className="text-sm text-gray-600 dark:text-gray-300">
-                        {source}
+                        {/* Procesar enlaces en las fuentes */}
+                        {source.includes('(') && source.includes(')') 
+                          ? source.replace(/\((.*?)\)/, '').trim()
+                          : source}
                       </li>
                     ))}
                   </ul>
                 </div>
               )}
               
-              <div className="text-sm text-gray-500 dark:text-gray-400">
-                Confidence: {(queryResponse.confidence * 100).toFixed(1)}%
+              <div className="flex items-center mt-3 text-sm text-gray-500 dark:text-gray-400 border-t pt-2 border-gray-100 dark:border-gray-800">
+                <div className="flex items-center">
+                  <div className="w-16 bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 mr-2">
+                    <div 
+                      className={`h-1.5 rounded-full ${
+                        queryResponse.confidence > 0.7 
+                          ? 'bg-green-500' 
+                          : queryResponse.confidence > 0.4 
+                            ? 'bg-yellow-500' 
+                            : 'bg-red-500'
+                      }`}
+                      style={{ width: `${queryResponse.confidence * 100}%` }}
+                    ></div>
+                  </div>
+                  <span>Confidence: {(queryResponse.confidence * 100).toFixed(1)}%</span>
+                </div>
               </div>
             </div>
           </CardContent>
