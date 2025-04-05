@@ -393,18 +393,18 @@ export default function DocumentAnalyzer() {
               <Info className="h-4 w-4 text-blue-500" />
               <AlertDescription className="text-blue-700 dark:text-blue-300">
                 Enter the URL of any web documentation to analyze it completely. The AI will read all the documentation to answer your questions.
-                <span className="block mt-1 italic text-xs">Note: Currently, the analysis is primarily limited to the main page. We are working to expand coverage to all subsections.</span>
+                {/* <span className="block mt-1 italic text-xs">Note: Currently, the analysis is primarily limited to the main page. We are working to expand coverage to all subsections.</span> */}
               </AlertDescription>
             </Alert>
             
-            {!serviceAvailable && (
+            {/* {!serviceAvailable && (
               <Alert className="bg-yellow-50 dark:bg-yellow-950 border-yellow-200 dark:border-yellow-900">
                 <AlertCircle className="h-4 w-4 text-yellow-500" />
                 <AlertDescription className="text-yellow-700 dark:text-yellow-300">
                   The documentation analysis feature is under development. The necessary backend service is not available at this time. Please try the other features such as code analysis or YouTube.
                 </AlertDescription>
               </Alert>
-            )}
+            )} */}
             
             <div className="space-y-2">
               <Label htmlFor="url" className="text-gray-900 dark:text-gray-100">URL of the Documentation</Label>
