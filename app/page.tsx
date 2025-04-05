@@ -17,7 +17,7 @@ import LanguageSelector from "./components/LanguageSelector";
 import Footer from "./components/Footer";
 import YouTubePlayer from "./components/YouTubePlayer";
 import YoutubeResume from "../components/YoutubeResume";
-import DocumentProcessor from "../components/DocumentProcessor";
+import DocumentAnalyzer from "../components/DocumentAnalyzer";
 
 export default function Home() {
   const [code, setCode] = useState("");
@@ -66,7 +66,7 @@ export default function Home() {
   const scrollTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [youtubeResumePosition, setYoutubeResumePosition] = useState({ x: 20, y: 500 });
   const [youtubeResumeSize, setYoutubeResumeSize] = useState({ width: 500, height: 250 });
-  const [activeFeature, setActiveFeature] = useState<'code' | 'youtube' | 'docs'>('code');
+  const [activeFeature, setActiveFeature] = useState<'code' | 'youtube' | 'docAnalyzer'>('code');
 
   // Asegurarse de que la UI se renderiza correctamente después de cargar
   useEffect(() => {
@@ -638,7 +638,7 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
                   <div className="w-full max-w-[800px] px-2 sm:px-4 mx-auto">
                     <Tabs 
                       value={activeFeature} 
-                      onValueChange={(value) => setActiveFeature(value as 'code' | 'youtube' | 'docs')}
+                      onValueChange={(value) => setActiveFeature(value as 'code' | 'youtube' | 'docAnalyzer')}
                       className="w-full"
                     >
                       <TabsList className="grid w-full grid-cols-3 bg-gray-100 dark:bg-transparent p-0 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-800">
@@ -646,19 +646,25 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
                           value="code"
                           className="flex items-center justify-center h-8 sm:h-10 px-2 sm:px-6 py-0 border-0 border-r border-gray-200 dark:border-gray-800 bg-gray-100 dark:bg-black text-center text-gray-500 dark:text-gray-400 data-[state=active]:!bg-blue-500 data-[state=active]:!text-white rounded-tl-lg rounded-bl-lg rounded-tr-none rounded-br-none transition-colors text-xs sm:text-sm"
                         >
-                          Code Assistant
+                          <Code2 className="h-4 w-4 mr-1" /> Code
                         </TabsTrigger>
                         <TabsTrigger 
                           value="youtube"
                           className="flex items-center justify-center h-8 sm:h-10 px-2 sm:px-6 py-0 border-0 border-r border-gray-200 dark:border-gray-800 bg-gray-100 dark:bg-black text-center text-gray-500 dark:text-gray-400 data-[state=active]:!bg-blue-500 data-[state=active]:!text-white rounded-none transition-colors text-xs sm:text-sm"
                         >
-                          Youtube Resumer
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 mr-1">
+                            <path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17"></path>
+                            <path d="m10 15 5-3-5-3z"></path>
+                          </svg> YouTube
                         </TabsTrigger>
                         <TabsTrigger 
-                          value="docs"
+                          value="docAnalyzer"
                           className="flex items-center justify-center h-8 sm:h-10 px-2 sm:px-6 py-0 border-0 bg-gray-100 dark:bg-black text-center text-gray-500 dark:text-gray-400 data-[state=active]:!bg-blue-500 data-[state=active]:!text-white rounded-tr-lg rounded-br-lg rounded-tl-none rounded-bl-none transition-colors text-xs sm:text-sm"
                         >
-                          Ask Documentation
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 mr-1">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <path d="m21 21-4.3-4.3"></path>
+                          </svg> Docs AI
                         </TabsTrigger>
                       </TabsList>
                     </Tabs>
@@ -1014,9 +1020,9 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
                     </>
                   )}
 
-                  {activeFeature === 'docs' && (
+                  {activeFeature === 'docAnalyzer' && (
                     <div className="space-y-4">
-                      <DocumentProcessor />
+                      <DocumentAnalyzer />
                     </div>
                   )}
                 </div>
