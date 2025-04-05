@@ -123,7 +123,7 @@ export default function DocumentAnalyzer() {
       console.log("Intentando analizar documentación:", url);
       // Iniciar el proceso de scraping en el backend
       const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:8000";
-      const response = await fetch(`${baseUrl}/api/v1/docs/process`, {
+      const response = await fetch(`${baseUrl}/api/v1/docs/scrape`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -154,19 +154,40 @@ export default function DocumentAnalyzer() {
       const data = await response.json();
       console.log("Datos recibidos:", data);
       
-      // Si el servidor no proporciona una estructura específica para el análisis de documentación,
-      // construimos un objeto con la información necesaria para la interfaz
-      const processedData: DocScrapeResponse = {
-        status: "completed", // Asumimos que si la respuesta es exitosa, el procesamiento se completó
-        url: url,
-        sections_analyzed: data.sections_analyzed || 1,
-        total_pages: data.total_pages || 1,
-        completion_percentage: data.completion_percentage || 100,
-        message: data.message || `Documentación analizada: ${data.title || url}`
-      };
+      // Actualizar el estado inicial con la respuesta del backend
+      setScrapeStatus(data);
       
-      setScrapeStatus(processedData);
-      setIsAnalyzing(false);
+      // Configurar un intervalo para verificar el estado del procesamiento
+      if (data.status === "in_progress") {
+        const interval = setInterval(async () => {
+          try {
+            const statusResponse = await fetch(`${baseUrl}/api/v1/docs/scrape-status?url=${encodeURIComponent(url)}`);
+            if (statusResponse.ok) {
+              const statusData = await statusResponse.json();
+              console.log("Actualización de estado:", statusData);
+              setScrapeStatus(statusData);
+              
+              // Si el procesamiento se completó o falló, detener el intervalo
+              if (statusData.status === "completed" || statusData.status === "failed") {
+                clearInterval(interval);
+                setIsAnalyzing(false);
+              }
+            } else {
+              console.error("Error al verificar estado:", statusResponse.status);
+              // No detenemos el intervalo en caso de error para seguir intentando
+            }
+          } catch (e) {
+            console.error("Error al verificar estado:", e);
+          }
+        }, 2000); // Verificar cada 2 segundos
+        
+        // Guardar referencia al intervalo
+        setStatusInterval(interval);
+      } else {
+        // Si el proceso ya está completo (modo síncrono)
+        setIsAnalyzing(false);
+      }
+      
       setLoading(false);
       
     } catch (error) {
@@ -191,21 +212,16 @@ export default function DocumentAnalyzer() {
       console.log("Realizando consulta:", query, "para URL:", url);
       const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:8000";
       
-      // Ajustar el formato de los datos para que sea compatible con el backend
       const requestData = {
         url,
         query,
         language_code: language,
-        max_tokens: 2000,
-        include_sources: true,
-        // Añadir los campos que podrían ser requeridos por el backend
-        analyze_subsections: true,
-        max_depth: 3
+        include_sources: true
       };
       
       console.log("Enviando datos:", JSON.stringify(requestData));
       
-      const response = await fetch(`${baseUrl}/api/v1/docs/query`, {
+      const response = await fetch(`${baseUrl}/api/v1/docs/ask`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -285,14 +301,14 @@ export default function DocumentAnalyzer() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="language" className="text-gray-900 dark:text-gray-100">Idioma</Label>
+            <Label htmlFor="language" className="text-gray-900 dark:text-gray-100">Language</Label>
             <Select value={language} onValueChange={setLanguage}>
               <SelectTrigger className="bg-transparent border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100">
                 <SelectValue placeholder="Select language" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="es">Spanish</SelectItem>
                 <SelectItem value="en">English</SelectItem>
+                <SelectItem value="es">Spanish</SelectItem>
               </SelectContent>
             </Select>
           </div>
