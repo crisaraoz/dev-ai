@@ -20,55 +20,6 @@ Here are some screenshots of the YouTube transcription and summarization feature
 ![YouTube Feature Screenshot 4](/public/images/dark_youtube4.png)
 *AI-powered summary of video content*
 
-## Running the Complete Application Locally
-
-This application consists of two parts: a Python backend (FastAPI) and a Next.js frontend. Follow these steps to run the complete application locally:
-
-### Step 1: Start the Backend
-
-The backend requires both the FastAPI server and the Qwen API proxy to be running:
-
-```bash
-# Navigate to the frontend directory (which contains the start script)
-cd C:\Users\LENOVO\OneDrive\Escritorio\FrontEnd\devAI-tool
-
-# Run the startup script that launches both services
-.\start-backend.ps1
-```
-
-This script will:
-- Start the Qwen API proxy in a new window
-- Start the FastAPI server (with hot-reload enabled)
-- Make the backend API available at http://127.0.0.1:8000
-
-### Step 2: Start the Frontend
-
-In a new terminal window:
-
-```bash
-# Navigate to the frontend directory
-cd C:\Users\LENOVO\OneDrive\Escritorio\FrontEnd\devAI-tool
-
-# Start the Next.js development server
-npm run dev
-```
-
-### Step 3: Access the Application
-
-Open your browser and go to [http://localhost:3000](http://localhost:3000) to use the application.
-
-### Troubleshooting
-
-If you encounter issues with the video summarization functionality:
-
-1. Check that both backend services are running
-2. Test the backend API directly:
-   ```bash
-   cd C:\Users\LENOVO\OneDrive\Escritorio\FrontEnd\devAI-tool
-   node test-summary-api.mjs
-   ```
-3. Verify network connections: make sure ports 8000 and 3000 are not blocked by firewalls
-
 ## Features
 
 ### Code Assistant
@@ -126,73 +77,58 @@ If you encounter issues with the video summarization functionality:
    yarn install
    ```
 
-3. Run the development server:
+## Running the Complete Application Locally
+
+This application consists of two parts: a Python backend (FastAPI) and a Next.js frontend. Follow these steps to run the complete application locally:
+
+### Step 1: Start the Backend
+
+The backend requires both the FastAPI server and the Qwen API proxy to be running:
+
+```bash
+# Navigate to the front directory (which contains the start script)
+cd C:\Users\your-front-directory
+
+# Run the startup script that start the Qwen api proxy (in my case im using this AI, it can be different for OpenAi or other AI model)
+.\start_proxy.ps1
+
+# Run the startup script that launches both services
+.\start-backend.ps1
+```
+
+This script will:
+- Start the Qwen API proxy in a new window
+- Start the FastAPI server (with hot-reload enabled)
+- Make the backend API available at http://127.0.0.1:8000
+
+### Step 2: Start the Frontend
+
+In a new terminal window:
+
+```bash
+# Navigate to the frontend directory
+cd C:\Users\your-frontend-directory
+
+# Start the Next.js development server
+npm run dev
+```
+
+### Step 3: Access the Application
+
+Open your browser and go to [http://localhost:3000](http://localhost:3000) to use the application.
+
+### Troubleshooting
+
+If you encounter issues with the video summarization functionality:
+
+1. Check that both backend services are running
+2. Test the backend API directly:
    ```bash
-   npm run dev
-   # or
-   yarn dev
+   cd C:\Users\your-frontend-directory
+   node test-summary-api.mjs
    ```
+3. Verify network connections: make sure ports 8000 and 3000 are not blocked by firewalls
 
-4. Open [http://localhost:3000](http://localhost:3000) in your browser to see the application.
-
-## How to Use
-
-### Code Assistant
-
-1. **Select Language & Experience Level**: Choose your programming language and desired explanation detail level.
-
-2. **Enter Code**: Type or paste your code in the input area.
-
-3. **Choose Operation**: Select one of the available operations:
-   - Refactor: Improve code structure and readability
-   - Generate Tests: Create test cases for your code
-   - Explain: Get detailed explanation of how your code works
-
-4. **Process Code**: Click the "Process" button or use Ctrl+Enter to submit your code.
-
-### YouTube Resumer
-
-1. **Paste a YouTube URL**: Enter a YouTube video URL in the input field or drag and drop the URL.
-
-2. **View Transcription**: The tool automatically generates a transcription with timestamps.
-
-3. **Navigate Content**: Click on timestamps to jump to specific parts of the video.
-
-4. **Auto-Scroll Option**: Toggle auto-scroll to follow along with the video playback.
-
-5. **Summarize Content**: Get AI-generated summaries of the video content.
-
-### Documentation Assistant
-
-1. **Ask Questions**: Type questions about technical documentation.
-
-2. **Upload Documentation**: Provide technical documents for context.
-
-3. **Get Answers**: Receive precise answers extracted from the documentation.
-
-## Project Structure
-
-```
-app/
-├── components/         # UI components
-│   ├── CodeBlock.tsx          # Code display component
-│   ├── ExplanationBlock.tsx   # Formatted explanation component
-│   ├── Footer.tsx             # Application footer
-│   ├── Header.tsx             # Application header component
-│   ├── InputArea.tsx          # Code input area component
-│   ├── LanguageSelector.tsx   # Language selection component
-│   ├── MessageHistory.tsx     # Chat history component
-│   ├── ResultsArea.tsx        # Results display component
-│   ├── Sidebar.tsx            # Sidebar navigation component
-│   ├── YouTubePlayer.tsx      # YouTube video player
-│   ├── YoutubeResume.tsx      # YouTube transcription component
-│   ├── SelectItemWithDescription.tsx  # Enhanced selection component
-│   ├── constants.ts           # Application constants
-│   └── utils.tsx              # Utility functions
-├── page.tsx            # Main application page
-└── components/         # Shared UI components
-    └── DocumentProcessor.tsx  # Documentation handling component
-```
 
 ## License
 
