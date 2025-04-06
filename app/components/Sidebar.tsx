@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus, MessageSquare, Trash2, X } from "lucide-react";
+import { Plus, MessageSquare, Trash2, X, User, LogOut, LayoutGrid } from "lucide-react";
 import { 
   Dialog, 
   DialogContent, 
@@ -9,6 +9,13 @@ import {
   DialogDescription,
   DialogFooter
 } from "@/components/ui/dialog";
+import { useSession, signOut } from "next-auth/react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface Conversation {
   id: string;
@@ -40,6 +47,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   const [hoverDelete, setHoverDelete] = useState<string | null>(null);
   const [deleteDialog, setDeleteDialog] = useState<boolean>(false);
   const [conversationToDelete, setConversationToDelete] = useState<string | null>(null);
+  const { data: session } = useSession();
 
   const handleDeleteClick = (event: React.MouseEvent, id: string) => {
     event.stopPropagation();
@@ -63,21 +71,21 @@ const Sidebar: React.FC<SidebarProps> = ({
         }`}
       >
         <div className="flex flex-col h-full pt-14 sm:pt-16 pb-4">
-          <div className="absolute top-2 right-2 sm:hidden">
+          <div className="flex justify-between items-center px-3 absolute top-2 left-2 right-2">
             <Button
               variant="ghost"
               size="icon"
               onClick={onClose}
-              className="h-8 w-8 p-1"
+              className="h-8 w-8 p-1 text-gray-700 dark:text-gray-300"
             >
-              <X className="h-5 w-5" />
+              <LayoutGrid className="h-5 w-5" />
             </Button>
           </div>
           
-          <div className="px-3 sm:px-4">
+          <div className="px-3 sm:px-4 mt-6">
             <Button 
-              variant="outline" 
-              className="w-full mb-3 sm:mb-4 text-left flex items-center gap-2 justify-start text-xs sm:text-sm h-9 sm:h-10" 
+              variant="default" 
+              className="w-full mb-3 sm:mb-4 text-left flex items-center gap-2 justify-start text-xs sm:text-sm h-9 sm:h-10 bg-blue-500 hover:bg-blue-600 text-white" 
               onClick={onNewConversation}
             >
               <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
@@ -118,6 +126,41 @@ const Sidebar: React.FC<SidebarProps> = ({
               ))}
             </div>
           </div>
+
+          {/* User Login Section al final del sidebar - mostrar estado de sesión */}
+          <div className="mt-auto pt-4 border-t border-gray-200 dark:border-gray-800 flex items-center px-3">
+            {session?.user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    className="flex items-center gap-2 text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 px-2 py-1 rounded w-full justify-start"
+                  >
+                    <User className="h-4 w-4" />
+                    <span className="truncate max-w-[140px] text-gray-900 dark:text-white">{session.user.name || session.user.email}</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start">
+                  <DropdownMenuItem 
+                    onClick={() => signOut({ callbackUrl: "/" })}
+                    className="cursor-pointer flex items-center gap-2 text-red-600"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    <span>Logout</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Button 
+                variant="ghost" 
+                className="text-gray-600 dark:text-gray-400 w-full justify-start"
+                onClick={() => window.location.href = "/login"}
+              >
+                <User className="h-4 w-4 mr-2" />
+                Login
+              </Button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -138,7 +181,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="sm:justify-end gap-2">
-            <Button variant="outline" onClick={() => setDeleteDialog(false)}>
+            <Button variant="outline" onClick={() => setDeleteDialog(false)} className="text-gray-800 dark:text-gray-200">
               Cancel
             </Button>
             <Button variant="destructive" onClick={confirmDelete}>

@@ -25,7 +25,7 @@ const SelectItemWithIcon: React.FC<SelectItemWithIconProps> = ({
             />
           </div>
         )}
-        <span>{children}</span>
+        <span className="text-gray-900 dark:text-gray-100">{children}</span>
       </div>
     </SelectItem>
   );

@@ -10,8 +10,8 @@ const SelectItemWithDescription = React.forwardRef<HTMLDivElement, SelectItemWit
     return (
       <SelectItem value={value as string} ref={ref} {...props}>
         <div>
-          <div>{children}</div>
-          {description && <p className="text-sm text-muted-foreground">{description}</p>}
+          <div className="text-gray-900 dark:text-gray-100">{children}</div>
+          {description && <p className="text-sm text-gray-600 dark:text-gray-400">{description}</p>}
         </div>
       </SelectItem>
     );

@@ -180,6 +180,13 @@ const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl, onTimeUpdate, s
                 }
               }
               
+              // Start playing now that we're ready
+              try {
+                event.target.playVideo();
+              } catch (error) {
+                console.error("Error playing video:", error);
+              }
+              
               // Apply custom styles to iframe after it's ready
               const iframe = document.querySelector('#youtube-iframe-container iframe');
               if (iframe && iframe instanceof HTMLIFrameElement) {
@@ -204,11 +211,13 @@ const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl, onTimeUpdate, s
             },
             onError: (event: any) => {
               console.error("Player error:", event.data);
+              setIsLoading(false);
             }
           }
         });
       } catch (error) {
         console.error("Error creating player:", error);
+        setIsLoading(false);
         startTimeSimulation();
       }
     };
@@ -380,6 +389,14 @@ const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl, onTimeUpdate, s
                   onYouTubeUrl?.(text);
                 }
               }}
+              onPaste={(e) => {
+                e.preventDefault();
+                const text = e.clipboardData.getData('text');
+                if (text.match(/^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+$/)) {
+                  onYouTubeUrl?.(text);
+                }
+              }}
+              tabIndex={0}
             >
               Drag & Drop or Copy your Youtube URL
             </div>

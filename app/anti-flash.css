@@ -1,0 +1,15 @@
+/* Anti-flash para tema oscuro */
+html {
+  background-color: black !important;
+  color-scheme: dark !important;
+}
+
+body {
+  background-color: black !important;
+  color: white !important;
+}
+
+/* Aplicar instantáneamente el tema oscuro */
+:root {
+  color-scheme: dark !important;
+} 
