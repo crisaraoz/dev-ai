@@ -1,15 +1,8 @@
 // Import required libraries
 import { NextRequest, NextResponse } from 'next/server';
-import OpenAI from 'openai';
-
-// Initialize OpenAI client
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || '',
-});
 
 export async function POST(req: NextRequest) {
   try {
-
     // Get the request body
     const body = await req.json();
     const { video_url, language = 'spanish', transcription } = body;
@@ -26,13 +19,17 @@ export async function POST(req: NextRequest) {
     // If transcription is not provided and we have a video URL, get the transcription
     if (!inputText && video_url) {
       try {
-        const backendUrl = process.env.BACKEND_URL || 'http://localhost:8000';
+        // Use API_URL or NEXT_PUBLIC_APP_URL instead of BACKEND_URL
+        const backendUrl = process.env.API_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:8000';
+        console.log(`Using backend URL: ${backendUrl}`);
+        
         const transcriptionResponse = await fetch(
           `${backendUrl}/api/v1/transcription/youtube`, 
           {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
+              'Origin': 'http://localhost:3000'
             },
             body: JSON.stringify({ video_url }),
           }
@@ -63,51 +60,63 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Prepare system prompt based on language
-    const systemPrompt = language.toLowerCase() === 'spanish' 
-      ? "Eres un asistente experto en resumir videos. Tu tarea es crear un resumen conciso pero completo de la transcripción proporcionada. Usa español simple y directo. Organiza el resumen en párrafos claros."
-      : "You are an expert assistant in summarizing videos. Your task is to create a concise but comprehensive summary of the provided transcript. Use simple and direct English. Organize the summary into clear paragraphs.";
+    // Convert language to language code
+    const languageCode = language.toLowerCase() === 'spanish' ? 'es' : 'en';
 
-    if (!openai.apiKey || openai.apiKey === '') {
-      console.error('Error: OPENAI_API_KEY no configurada');
-      return NextResponse.json(
-        { detail: "OpenAI API key not configured" },
-        { status: 500 }
-      );
-    }
-
-    // Call OpenAI to generate the summary
+    // Call backend for summary directly without any timeouts or controllers
     try {
-      const response = await openai.chat.completions.create({
-        model: "gpt-3.5-turbo",
-        messages: [
-          {
-            role: "system",
-            content: systemPrompt
-          },
-          {
-            role: "user",
-            content: `Por favor resume esta transcripción de video: ${inputText}`
-          }
-        ],
-        temperature: 0.7,
-        max_tokens: 500,
+      console.log("Intentando resumen con transcripción:", inputText.substring(0, 50) + "...");
+      
+      // Use a simpler, more direct approach with Node.js fetch
+      const apiUrl = 'http://127.0.0.1:8000/api/v1/summary/youtube';
+      
+      // Create payload explicitly
+      const payload = {
+        url: video_url || undefined,
+        transcription: inputText,
+        language_code: languageCode,
+        max_length: 500
+      };
+      
+      console.log("Sending POST request to:", apiUrl);
+      console.log("With payload:", JSON.stringify(payload).substring(0, 150) + "...");
+      
+      const summaryResponse = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify(payload),
+        cache: 'no-store'
       });
-
-      const summary = response.choices[0].message.content;
-      // Return the summary
-      return NextResponse.json({ summary });
-    } catch (openaiError) {
-      console.error('Error en llamada a OpenAI:', openaiError);
+      
+      console.log("Response status:", summaryResponse.status);
+      
+      if (!summaryResponse.ok) {
+        const errorText = await summaryResponse.text();
+        console.error(`Error from backend (${summaryResponse.status}): ${errorText}`);
+        throw new Error(`Backend returned error ${summaryResponse.status}: ${errorText}`);
+      }
+      
+      const summaryData = await summaryResponse.json();
+      console.log("Resumen recibido correctamente");
+      return NextResponse.json({ summary: summaryData.summary });
+    } catch (error) {
+      console.error("Error al resumir:", error);
       return NextResponse.json(
-        { detail: "Error calling OpenAI API", error: openaiError instanceof Error ? openaiError.message : String(openaiError) },
+        { 
+          detail: "Error summarizing content", 
+          error: error instanceof Error ? error.message : String(error),
+          suggestion: "Verify that the backend is running and accessible at http://localhost:8000"
+        },
         { status: 500 }
       );
     }
   } catch (error) {
-    console.error("Error general generando resumen:", error);
+    console.error("Error general:", error);
     return NextResponse.json(
-      { detail: "Error generating summary", error: error instanceof Error ? error.message : String(error) },
+      { detail: "General error", error: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     );
   }

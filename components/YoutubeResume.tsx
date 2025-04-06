@@ -164,28 +164,48 @@ export default function YoutubeResume({
     
     try {
       // Llamamos a la API enviando directamente la transcripción
-      const response = await fetch('http://localhost:8000/api/v1/summary/youtube', {
+      console.log("Enviando solicitud al endpoint de resumen...");
+      
+      // Mostrar los primeros 100 caracteres de la transcripción para debugging
+      console.log("Transcripción (primeros 100 caracteres):", text.substring(0, 100) + "...");
+      
+      const response = await fetch('/api/v1/transcription/summarize', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           transcription: text,
-          language_code: selectedLanguage,
-          max_length: 500
+          language: selectedLanguage === 'es' ? 'spanish' : 'english'
         }),
+        cache: 'no-store'
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.detail || "Error al resumir el texto");
+        console.error("Error en respuesta:", data);
+        let errorMessage = "Error al resumir el texto";
+        
+        if (data.detail) {
+          errorMessage = data.detail;
+          if (data.error) {
+            errorMessage += ": " + data.error;
+          }
+          if (data.suggestion) {
+            errorMessage += ". " + data.suggestion;
+          }
+        }
+        
+        throw new Error(errorMessage);
       }
 
       // Actualizamos el resumen y ajustamos el tamaño para mostrar todo el contenido
+      console.log("Resumen recibido correctamente");
       setSummary(data.summary);
       setSize(prev => ({ ...prev, height: 500 }));
     } catch (err) {
+      console.error("Error completo:", err);
       setError(err instanceof Error ? err.message : "Error al resumir el texto");
     } finally {
       setSummarizingText(false);
