@@ -624,9 +624,9 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
               onClose={() => setSidebarOpen(false)}
               conversations={conversations}
               activeConversation={activeConversation}
-              onNewConversation={() => {/* Lógica para nueva conversación */}}
+              onNewConversation={startNewConversation}
               onSelectConversation={setActiveConversation}
-              onDeleteConversation={(id) => {/* Lógica para eliminar conversación */}}
+              onDeleteConversation={deleteConversation}
             />
 
             {/* Feature Selector Tabs */}

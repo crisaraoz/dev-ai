@@ -181,7 +181,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="sm:justify-end gap-2">
-            <Button variant="outline" onClick={() => setDeleteDialog(false)}>
+            <Button variant="outline" onClick={() => setDeleteDialog(false)} className="text-gray-800 dark:text-gray-200">
               Cancel
             </Button>
             <Button variant="destructive" onClick={confirmDelete}>
