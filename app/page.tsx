@@ -6,6 +6,7 @@ import { Code2, Maximize2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LayoutGrid } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { useSession } from "next-auth/react";
 
 // Importación de componentes
 import Sidebar from "./components/Sidebar";
@@ -31,6 +32,7 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState("refactor");
   const [messages, setMessages] = useState<{type: 'user' | 'ai', content: string, response?: string, tab?: string}[]>([]);
   const { setTheme, theme } = useTheme();
+  const { data: session } = useSession();
   const [selectedMessage, setSelectedMessage] = useState<number | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -599,440 +601,440 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-black flex flex-col">
-      <div className="flex-1 flex flex-col">
-        {/* Button for sidebar */}
-        <div className="fixed top-3 left-3 z-50">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={toggleSidebar}
-            className="rounded-sm bg-transparent dark:bg-transparent border-0 hover:bg-gray-100 dark:hover:bg-gray-800 p-0 w-8 h-8 flex items-center justify-center"
-            title={sidebarOpen ? "Hide chats" : "Show chats"}
-          >
-            <LayoutGrid className="h-5 w-5 text-gray-700 dark:text-gray-300" />
-          </Button>
-        </div>
+    <div className={`min-h-screen bg-white dark:bg-black flex flex-col`}>
+      {mounted && (
+        <>
+          <Header />
+          
+          <div className="flex-1 flex flex-col">
+            {/* Button for sidebar - toggle open/close */}
+            <div className="fixed top-4 left-4 z-10">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setSidebarOpen(!sidebarOpen)}
+                className="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white p-1 sm:p-2"
+              >
+                <LayoutGrid className="h-4 w-4 sm:h-5 sm:w-5" />
+              </Button>
+            </div>
 
-        <Header
-          onToggleFullscreen={toggleFullscreen}
-          isFullscreen={isFullscreen}
-        />
-
-        <main className="flex-1 overflow-hidden">
-          <div className="h-full flex">
-            <Sidebar 
+            <Sidebar
               isOpen={sidebarOpen}
               onClose={() => setSidebarOpen(false)}
-              conversations={conversations} 
-              activeConversation={activeConversation} 
-              onSelectConversation={selectConversation}
-              onDeleteConversation={deleteConversation}
-              onNewConversation={startNewConversation}
+              conversations={conversations}
+              activeConversation={activeConversation}
+              onNewConversation={() => {/* Lógica para nueva conversación */}}
+              onSelectConversation={setActiveConversation}
+              onDeleteConversation={(id) => {/* Lógica para eliminar conversación */}}
             />
 
-            <div className="flex-1 flex flex-col">
-              {/* Feature Selector */}
-              <div className="border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-black">
-                <div className="flex justify-center mx-auto py-1">
-                  <div className="w-full max-w-[800px] px-2 sm:px-4 mx-auto">
-                    <Tabs 
-                      value={activeFeature} 
-                      onValueChange={(value) => setActiveFeature(value as 'code' | 'youtube' | 'docAnalyzer')}
-                      className="w-full"
-                    >
-                      <TabsList className="grid w-full grid-cols-3 bg-gray-100 dark:bg-transparent p-0 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-800">
-                        <TabsTrigger 
-                          value="code"
-                          className="flex items-center justify-center h-8 sm:h-10 px-2 sm:px-6 py-0 border-0 border-r border-gray-200 dark:border-gray-800 bg-gray-100 dark:bg-black text-center text-gray-500 dark:text-gray-400 data-[state=active]:!bg-blue-500 data-[state=active]:!text-white rounded-tl-lg rounded-bl-lg rounded-tr-none rounded-br-none transition-colors text-xs sm:text-sm"
+            <main className="flex-1 overflow-hidden">
+              <div className="h-full flex">
+                <div className="flex-1 flex flex-col">
+                  {/* Feature Selector */}
+                  <div className="border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-black">
+                    <div className="flex justify-center mx-auto py-1">
+                      <div className="w-full max-w-[800px] px-2 sm:px-4 mx-auto">
+                        <Tabs 
+                          value={activeFeature} 
+                          onValueChange={(value) => setActiveFeature(value as 'code' | 'youtube' | 'docAnalyzer')}
+                          className="w-full"
                         >
-                          <Code2 className="h-4 w-4 mr-1" /> Code
-                        </TabsTrigger>
-                        <TabsTrigger 
-                          value="youtube"
-                          className="flex items-center justify-center h-8 sm:h-10 px-2 sm:px-6 py-0 border-0 border-r border-gray-200 dark:border-gray-800 bg-gray-100 dark:bg-black text-center text-gray-500 dark:text-gray-400 data-[state=active]:!bg-blue-500 data-[state=active]:!text-white rounded-none transition-colors text-xs sm:text-sm"
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 mr-1">
-                            <path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17"></path>
-                            <path d="m10 15 5-3-5-3z"></path>
-                          </svg> YouTube
-                        </TabsTrigger>
-                        <TabsTrigger 
-                          value="docAnalyzer"
-                          className="flex items-center justify-center h-8 sm:h-10 px-2 sm:px-6 py-0 border-0 bg-gray-100 dark:bg-black text-center text-gray-500 dark:text-gray-400 data-[state=active]:!bg-blue-500 data-[state=active]:!text-white rounded-tr-lg rounded-br-lg rounded-tl-none rounded-bl-none transition-colors text-xs sm:text-sm"
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 mr-1">
-                            <circle cx="11" cy="11" r="8"></circle>
-                            <path d="m21 21-4.3-4.3"></path>
-                          </svg> Docs AI
-                        </TabsTrigger>
-                      </TabsList>
-                    </Tabs>
-                  </div>
-                </div>
-              </div>
-
-              {/* Main Content Area */}
-              <div className="flex-1 overflow-auto p-2 sm:p-4 bg-white dark:bg-black">
-                <div className="max-w-7xl mx-auto pb-8 sm:pb-16">
-                  {activeFeature === 'code' && (
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-6">
-                      {/* Left Column */}
-                      <div className="space-y-3 sm:space-y-6">
-                        <div className="flex items-center gap-2 sm:gap-4">
-                          <LanguageSelector 
-                            language={language} 
-                            setLanguage={setLanguage}
-                            explanationLevel={explanationLevel}
-                            setExplanationLevel={setExplanationLevel}
-                            isDisabled={activeTab === "transcript" || !!videoUrl}
-                          />
-                        </div>
-                        <div className="bg-card rounded-lg overflow-hidden border">
-                          <YouTubePlayer 
-                            videoUrl={videoUrl} 
-                            onTimeUpdate={handleVideoTimeUpdate}
-                            seekTo={videoSeekTime}
-                            isProcessing={isLoading}
-                            onYouTubeUrl={handleYouTubeUrl}
-                          />
-                        </div>
-                        <InputArea 
-                          code={code}
-                          setCode={setCode}
-                          handleProcess={handleProcess}
-                          selectedMessage={selectedMessage}
-                          isLoading={isLoading}
-                          onYouTubeUrl={handleYouTubeUrl}
-                        />
-                      </div>
-                      
-                      {/* Right Column */}
-                      <div className="space-y-2 sm:space-y-4">
-                        <div className="flex items-center justify-between">
-                          <select
-                            value={activeTab}
-                            onChange={(e) => setActiveTab(e.target.value)}
-                            className="text-gray-700 dark:text-gray-300 rounded-lg px-3 py-2 border border-gray-200 dark:border-gray-700 bg-transparent"
-                            style={{ 
-                              WebkitAppearance: 'none',
-                              MozAppearance: 'none',
-                              appearance: 'none',
-                              backgroundImage: `url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23${theme === 'dark' ? '888' : '444'}%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E")`,
-                              backgroundRepeat: 'no-repeat',
-                              backgroundPosition: 'right 0.5rem center',
-                              backgroundSize: '0.65em auto',
-                              paddingRight: '2.5rem'
-                            }}
-                          >
-                            <option value="refactor" className="bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300">Refactor</option>
-                            <option value="test" className="bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300">Test</option>
-                            <option value="explain" className="bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300">Explain</option>
-                          </select>
-                        </div>
-
-                        {/* Add style for dark mode dropdown options globally */}
-                        {theme === 'dark' && (
-                          <style jsx global>{`
-                            option {
-                              background-color: #000000 !important;
-                              color: #d1d5db !important;
-                            }
-                            
-                            select {
-                              background-color: #000000 !important;
-                              color: #d1d5db !important;
-                              border-color: #333333 !important;
-                            }
-                            
-                            select option {
-                              background-color: #000000 !important;
-                              color: #d1d5db !important;
-                              padding: 10px 14px !important;
-                              border-bottom: 1px solid #333333 !important;
-                            }
-                            
-                            /* For Firefox */
-                            select:-moz-focusring {
-                              color: transparent !important;
-                              text-shadow: 0 0 0 #d1d5db !important;
-                            }
-                            
-                            /* For Chrome/Safari */
-                            select option:checked,
-                            select option:hover {
-                              background-color: #333333 !important;
-                              color: #cccccc !important;
-                            }
-                            
-                            /* Enhanced dropdown appearance */
-                            select {
-                              box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2) !important;
-                            }
-                            
-                            /* Make options look more like a menu */
-                            select option {
-                              margin: 2px 0 !important;
-                              border-radius: 4px !important;
-                            }
-                            
-                            /* Fix for Webkit browsers */
-                            @media screen and (-webkit-min-device-pixel-ratio:0) { 
-                              select {
-                                border-radius: 4px !important;
-                              }
-                              
-                              select option {
-                                background-color: #000000 !important;
-                              }
-                              
-                              select option:checked {
-                                background-color: #222222 !important;
-                              }
-                            }
-                          `}</style>
-                        )}
-
-                        <ResultsArea
-                          result={result}
-                          isLoading={isLoading}
-                          showTimestamps={activeTab === "transcript"}
-                          onTimeClick={handleTranscriptTimeClick}
-                        />
+                          <TabsList className="grid w-full grid-cols-3 bg-gray-100 dark:bg-transparent p-0 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-800">
+                            <TabsTrigger 
+                              value="code"
+                              className="flex items-center justify-center h-8 sm:h-10 px-2 sm:px-6 py-0 border-0 border-r border-gray-200 dark:border-gray-800 bg-gray-100 dark:bg-black text-center text-gray-500 dark:text-gray-400 data-[state=active]:!bg-blue-500 data-[state=active]:!text-white rounded-tl-lg rounded-bl-lg rounded-tr-none rounded-br-none transition-colors text-xs sm:text-sm"
+                            >
+                              <Code2 className="h-4 w-4 mr-1" /> Code
+                            </TabsTrigger>
+                            <TabsTrigger 
+                              value="youtube"
+                              className="flex items-center justify-center h-8 sm:h-10 px-2 sm:px-6 py-0 border-0 border-r border-gray-200 dark:border-gray-800 bg-gray-100 dark:bg-black text-center text-gray-500 dark:text-gray-400 data-[state=active]:!bg-blue-500 data-[state=active]:!text-white rounded-none transition-colors text-xs sm:text-sm"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 mr-1">
+                                <path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17"></path>
+                                <path d="m10 15 5-3-5-3z"></path>
+                              </svg> YouTube
+                            </TabsTrigger>
+                            <TabsTrigger 
+                              value="docAnalyzer"
+                              className="flex items-center justify-center h-8 sm:h-10 px-2 sm:px-6 py-0 border-0 bg-gray-100 dark:bg-black text-center text-gray-500 dark:text-gray-400 data-[state=active]:!bg-blue-500 data-[state=active]:!text-white rounded-tr-lg rounded-br-lg rounded-tl-none rounded-bl-none transition-colors text-xs sm:text-sm"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 mr-1">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <path d="m21 21-4.3-4.3"></path>
+                              </svg> Docs AI
+                            </TabsTrigger>
+                          </TabsList>
+                        </Tabs>
                       </div>
                     </div>
-                  )}
+                  </div>
 
-                  {activeFeature === 'youtube' && (
-                    <>
-                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 h-full">
-                        {/* Left Column */}
-                        <div className="flex flex-col h-full">
-                          <div className="bg-white dark:bg-black rounded-lg flex flex-col border border-gray-200 dark:border-gray-800 h-[520px]">
-                            {videoUrl ? (
-                              <div className="w-full h-full overflow-hidden bg-black flex items-center justify-center">
-                                <YouTubePlayer
-                                  videoUrl={videoUrl}
-                                  onTimeUpdate={handleVideoTimeUpdate}
-                                  seekTo={videoSeekTime}
-                                  isProcessing={isLoading}
-                                  onYouTubeUrl={handleYouTubeUrl}
-                                />
-                              </div>
-                            ) : (
-                              <div className="flex-1 flex flex-col items-center justify-center py-8 px-4 sm:p-8">
-                                <div className="text-4xl font-bold mb-4 text-gray-700 dark:text-gray-300">&lt;/&gt;</div>
-                                <h1 className="text-2xl font-bold mb-8 text-center text-gray-900 dark:text-white">Welcome to AI Dev Tools</h1>
-                                <div 
-                                  className="w-full max-w-md bg-gray-100 dark:bg-black p-4 rounded-lg mb-4 border border-dashed border-gray-400 dark:border-gray-500 hover:border-white dark:hover:border-white transition-all duration-300 cursor-pointer"
-                                  onDragOver={(e) => {
-                                    e.preventDefault();
-                                    e.currentTarget.classList.add('border-white');
-                                    e.currentTarget.classList.add('dark:border-white');
-                                    e.currentTarget.classList.add('shadow-[0_0_10px_rgba(255,255,255,0.4)]');
-                                    e.currentTarget.classList.add('bg-gray-200');
-                                    e.currentTarget.classList.add('dark:bg-gray-900');
-                                  }}
-                                  onDragLeave={(e) => {
-                                    e.preventDefault();
-                                    e.currentTarget.classList.remove('border-white');
-                                    e.currentTarget.classList.remove('dark:border-white');
-                                    e.currentTarget.classList.remove('shadow-[0_0_10px_rgba(255,255,255,0.4)]');
-                                    e.currentTarget.classList.remove('bg-gray-200');
-                                    e.currentTarget.classList.remove('dark:bg-gray-900');
-                                  }}
-                                  onDrop={(e) => {
-                                    e.preventDefault();
-                                    e.currentTarget.classList.remove('border-white');
-                                    e.currentTarget.classList.remove('dark:border-white');
-                                    e.currentTarget.classList.remove('shadow-[0_0_10px_rgba(255,255,255,0.4)]');
-                                    e.currentTarget.classList.remove('bg-gray-200');
-                                    e.currentTarget.classList.remove('dark:bg-gray-900');
-                                    const text = e.dataTransfer.getData('text');
-                                    if (text.match(/^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+$/)) {
-                                      handleYouTubeUrl(text);
-                                    }
-                                  }}
-                                >
-                                  <p className="text-center text-gray-800 dark:text-white">Drag & Drop or Copy your Youtube URL</p>
-                                </div>
-                              </div>
-                            )}
-                            
-                            {/* Input area integrated within the same box */}
-                            <div className="p-4 border-t border-gray-200 dark:border-gray-800" style={{ flexShrink: 0 }}>
-                              <InputArea 
-                                code={code}
-                                setCode={setCode}
-                                handleProcess={handleProcess}
-                                selectedMessage={selectedMessage}
-                                isLoading={isLoading}
-                                onYouTubeUrl={handleYouTubeUrl}
-                                placeholder="Drag & Drop or Copy your Youtube URL"
+                  {/* Main Content Area */}
+                  <div className="flex-1 overflow-auto p-2 sm:p-4 bg-white dark:bg-black">
+                    <div className="max-w-7xl mx-auto pb-8 sm:pb-16">
+                      {activeFeature === 'code' && (
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-6">
+                          {/* Left Column */}
+                          <div className="space-y-3 sm:space-y-6">
+                            <div className="flex items-center gap-2 sm:gap-4">
+                              <LanguageSelector 
+                                language={language} 
+                                setLanguage={setLanguage}
+                                explanationLevel={explanationLevel}
+                                setExplanationLevel={setExplanationLevel}
+                                isDisabled={activeTab === "transcript" || !!videoUrl}
                               />
                             </div>
+                            <div className="bg-card rounded-lg overflow-hidden border">
+                              <YouTubePlayer 
+                                videoUrl={videoUrl} 
+                                onTimeUpdate={handleVideoTimeUpdate}
+                                seekTo={videoSeekTime}
+                                isProcessing={isLoading}
+                                onYouTubeUrl={handleYouTubeUrl}
+                              />
+                            </div>
+                            <InputArea 
+                              code={code}
+                              setCode={setCode}
+                              handleProcess={handleProcess}
+                              selectedMessage={selectedMessage}
+                              isLoading={isLoading}
+                              onYouTubeUrl={handleYouTubeUrl}
+                            />
                           </div>
-                        </div>
-                
-                        {/* Right Column - Transcript */}
-                        <div className="flex flex-col h-full">
-                          <div className={`bg-white dark:bg-black border border-gray-200 dark:border-gray-800 rounded-lg shadow-lg overflow-hidden ${transcriptCollapsed ? 'h-auto' : 'h-[520px]'}`}>
-                            <div 
-                              className={`flex items-center justify-between p-3 ${transcriptCollapsed ? '' : 'border-b'} border-gray-200 dark:border-gray-800 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-900 transition-colors`}
-                              onClick={() => setTranscriptCollapsed(!transcriptCollapsed)}
-                            >
-                              <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
-                                <span>Video Transcript</span>
-                                <svg 
-                                  xmlns="http://www.w3.org/2000/svg" 
-                                  width="16" 
-                                  height="16" 
-                                  viewBox="0 0 24 24" 
-                                  fill="none" 
-                                  stroke="currentColor" 
-                                  strokeWidth="2" 
-                                  strokeLinecap="round" 
-                                  strokeLinejoin="round" 
-                                  className={`ml-2 transition-transform ${transcriptCollapsed ? 'rotate-180' : 'rotate-0'}`}
-                                >
-                                  <polyline points="6 9 12 15 18 9"></polyline>
-                                </svg>
-                              </h2>
-                              <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                                <span className="text-sm text-gray-700 dark:text-gray-300">Auto-scroll</span>
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setAutoScroll(!autoScroll);
-                                  }}
-                                  className={`px-2 py-1 text-xs rounded ${
-                                    autoScroll ? 'bg-blue-500 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
-                                  }`}
-                                >
-                                  {autoScroll ? 'ON' : 'OFF'}
-                                </button>
-                              </div>
+                          
+                          {/* Right Column */}
+                          <div className="space-y-2 sm:space-y-4">
+                            <div className="flex items-center justify-between">
+                              <select
+                                value={activeTab}
+                                onChange={(e) => setActiveTab(e.target.value)}
+                                className="text-gray-700 dark:text-gray-300 rounded-lg px-3 py-2 border border-gray-200 dark:border-gray-700 bg-transparent"
+                                style={{ 
+                                  WebkitAppearance: 'none',
+                                  MozAppearance: 'none',
+                                  appearance: 'none',
+                                  backgroundImage: `url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23${theme === 'dark' ? '888' : '444'}%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E")`,
+                                  backgroundRepeat: 'no-repeat',
+                                  backgroundPosition: 'right 0.5rem center',
+                                  backgroundSize: '0.65em auto',
+                                  paddingRight: '2.5rem'
+                                }}
+                              >
+                                <option value="refactor" className="bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300">Refactor</option>
+                                <option value="test" className="bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300">Test</option>
+                                <option value="explain" className="bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300">Explain</option>
+                              </select>
                             </div>
 
-                            {!transcriptCollapsed && (
-                              <div className="bg-gray-50 dark:bg-black relative h-[477px]">
-                                {/* Transcripción */}
-                                <div className="h-full p-4 overflow-auto transcript-scroll-area">
-                                  {isLoading ? (
-                                    <div className="flex items-center justify-center h-full">
-                                      <div className="animate-spin h-10 w-10 border-4 border-t-primary border-r-transparent border-b-primary border-l-transparent rounded-full"></div>
-                                    </div>
-                                  ) : videoResult ? (
-                                    <div className="space-y-1">
-                                      {videoResult.split('\n').map((line, i) => (
-                                        <div 
-                                          key={i}
-                                          id={`transcript-line-${i}`}
-                                          className="py-1 px-1 rounded transition-colors"
-                                        >
-                                          {line.match(/^(\d{2}:\d{2})/) ? (
-                                            <div className="flex items-start">
-                                              <span 
-                                                className="inline-block bg-white dark:bg-gray-700 text-black dark:text-white text-xs font-mono py-0.5 px-1.5 rounded mr-2 cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600"
-                                                onClick={() => {
-                                                  const timeMatch = line.match(/^(\d{2}:\d{2})/);
-                                                  if (timeMatch && timeMatch[1]) {
-                                                    handleTranscriptTimeClick(timeMatch[1]);
-                                                  }
-                                                }}
-                                              >
-                                                {(() => {
-                                                  const match = line.match(/^(\d{2}:\d{2})/);
-                                                  return match ? match[1] : "00:00";
-                                                })()}
-                                              </span>
-                                              <span className="text-gray-800 dark:text-gray-200">{line.replace(/^\d{2}:\d{2}\s*/, '')}</span>
-                                            </div>
-                                          ) : (
-                                            <span className="text-gray-800 dark:text-gray-200">{line}</span>
-                                          )}
-                                        </div>
-                                      ))}
-                                    </div>
-                                  ) : (
-                                    <div className="text-gray-500 dark:text-gray-400 text-center h-full flex items-center justify-center">
-                                      Enter a YouTube URL to view the transcription
-                                    </div>
-                                  )}
-                                </div>
+                            {/* Add style for dark mode dropdown options globally */}
+                            {theme === 'dark' && (
+                              <style jsx global>{`
+                                option {
+                                  background-color: #000000 !important;
+                                  color: #d1d5db !important;
+                                }
                                 
-                                {/* Botones de acción para la transcripción */}
-                                {videoResult && (
-                                  <div className="absolute bottom-3 right-3 flex space-x-2 z-20">
-                                    <button 
-                                      className="p-2 bg-white dark:bg-gray-800 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors shadow-md"
-                                      onClick={() => {
-                                        navigator.clipboard.writeText(videoResult);
+                                select {
+                                  background-color: #000000 !important;
+                                  color: #d1d5db !important;
+                                  border-color: #333333 !important;
+                                }
+                                
+                                select option {
+                                  background-color: #000000 !important;
+                                  color: #d1d5db !important;
+                                  padding: 10px 14px !important;
+                                  border-bottom: 1px solid #333333 !important;
+                                }
+                                
+                                /* For Firefox */
+                                select:-moz-focusring {
+                                  color: transparent !important;
+                                  text-shadow: 0 0 0 #d1d5db !important;
+                                }
+                                
+                                /* For Chrome/Safari */
+                                select option:checked,
+                                select option:hover {
+                                  background-color: #333333 !important;
+                                  color: #cccccc !important;
+                                }
+                                
+                                /* Enhanced dropdown appearance */
+                                select {
+                                  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2) !important;
+                                }
+                                
+                                /* Make options look more like a menu */
+                                select option {
+                                  margin: 2px 0 !important;
+                                  border-radius: 4px !important;
+                                }
+                                
+                                /* Fix for Webkit browsers */
+                                @media screen and (-webkit-min-device-pixel-ratio:0) { 
+                                  select {
+                                    border-radius: 4px !important;
+                                  }
+                                  
+                                  select option {
+                                    background-color: #000000 !important;
+                                  }
+                                  
+                                  select option:checked {
+                                    background-color: #222222 !important;
+                                  }
+                                }
+                              `}</style>
+                            )}
+
+                            <ResultsArea
+                              result={result}
+                              isLoading={isLoading}
+                              showTimestamps={activeTab === "transcript"}
+                              onTimeClick={handleTranscriptTimeClick}
+                            />
+                          </div>
+                        </div>
+                      )}
+
+                      {activeFeature === 'youtube' && (
+                        <>
+                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 h-full">
+                            {/* Left Column */}
+                            <div className="flex flex-col h-full">
+                              <div className="bg-white dark:bg-black rounded-lg flex flex-col border border-gray-200 dark:border-gray-800 h-[520px]">
+                                {videoUrl ? (
+                                  <div className="w-full h-full overflow-hidden bg-black flex items-center justify-center">
+                                    <YouTubePlayer
+                                      videoUrl={videoUrl}
+                                      onTimeUpdate={handleVideoTimeUpdate}
+                                      seekTo={videoSeekTime}
+                                      isProcessing={isLoading}
+                                      onYouTubeUrl={handleYouTubeUrl}
+                                    />
+                                  </div>
+                                ) : (
+                                  <div className="flex-1 flex flex-col items-center justify-center py-8 px-4 sm:p-8">
+                                    <div className="text-4xl font-bold mb-4 text-gray-700 dark:text-gray-300">&lt;/&gt;</div>
+                                    <h1 className="text-2xl font-bold mb-8 text-center text-gray-900 dark:text-white">Welcome to AI Dev Tools</h1>
+                                    <div 
+                                      className="w-full max-w-md bg-gray-100 dark:bg-black p-4 rounded-lg mb-4 border border-dashed border-gray-400 dark:border-gray-500 hover:border-white dark:hover:border-white transition-all duration-300 cursor-pointer"
+                                      onDragOver={(e) => {
+                                        e.preventDefault();
+                                        e.currentTarget.classList.add('border-white');
+                                        e.currentTarget.classList.add('dark:border-white');
+                                        e.currentTarget.classList.add('shadow-[0_0_10px_rgba(255,255,255,0.4)]');
+                                        e.currentTarget.classList.add('bg-gray-200');
+                                        e.currentTarget.classList.add('dark:bg-gray-900');
                                       }}
-                                      title="Copy transcription"
-                                    >
-                                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-600 dark:text-gray-300">
-                                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                                      </svg>
-                                    </button>
-                                    <button 
-                                      className="p-2 bg-white dark:bg-gray-800 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors shadow-md"
-                                      onClick={() => {
-                                        const blob = new Blob([videoResult], { type: "text/plain" });
-                                        const url = window.URL.createObjectURL(blob);
-                                        const a = document.createElement("a");
-                                        a.href = url;
-                                        const fileName = videoUrl ? 
-                                          `transcription_${new Date().toISOString().slice(0, 10)}` : 
-                                          "transcription";
-                                        a.download = `${fileName}.txt`;
-                                        a.click();
+                                      onDragLeave={(e) => {
+                                        e.preventDefault();
+                                        e.currentTarget.classList.remove('border-white');
+                                        e.currentTarget.classList.remove('dark:border-white');
+                                        e.currentTarget.classList.remove('shadow-[0_0_10px_rgba(255,255,255,0.4)]');
+                                        e.currentTarget.classList.remove('bg-gray-200');
+                                        e.currentTarget.classList.remove('dark:bg-gray-900');
                                       }}
-                                      title="Descargar transcripción"
+                                      onDrop={(e) => {
+                                        e.preventDefault();
+                                        e.currentTarget.classList.remove('border-white');
+                                        e.currentTarget.classList.remove('dark:border-white');
+                                        e.currentTarget.classList.remove('shadow-[0_0_10px_rgba(255,255,255,0.4)]');
+                                        e.currentTarget.classList.remove('bg-gray-200');
+                                        e.currentTarget.classList.remove('dark:bg-gray-900');
+                                        const text = e.dataTransfer.getData('text');
+                                        if (text.match(/^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+$/)) {
+                                          handleYouTubeUrl(text);
+                                        }
+                                      }}
                                     >
-                                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-600 dark:text-gray-300">
-                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                                        <polyline points="7 10 12 15 17 10"></polyline>
-                                        <line x1="12" y1="15" x2="12" y2="3"></line>
-                                      </svg>
+                                      <p className="text-center text-gray-800 dark:text-white">Drag & Drop or Copy your Youtube URL</p>
+                                    </div>
+                                  </div>
+                                )}
+                                
+                                {/* Input area integrated within the same box */}
+                                <div className="p-4 border-t border-gray-200 dark:border-gray-800" style={{ flexShrink: 0 }}>
+                                  <InputArea 
+                                    code={code}
+                                    setCode={setCode}
+                                    handleProcess={handleProcess}
+                                    selectedMessage={selectedMessage}
+                                    isLoading={isLoading}
+                                    onYouTubeUrl={handleYouTubeUrl}
+                                    placeholder="Drag & Drop or Copy your Youtube URL"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                    
+                            {/* Right Column - Transcript */}
+                            <div className="flex flex-col h-full">
+                              <div className={`bg-white dark:bg-black border border-gray-200 dark:border-gray-800 rounded-lg shadow-lg overflow-hidden ${transcriptCollapsed ? 'h-auto' : 'h-[520px]'}`}>
+                                <div 
+                                  className={`flex items-center justify-between p-3 ${transcriptCollapsed ? '' : 'border-b'} border-gray-200 dark:border-gray-800 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-900 transition-colors`}
+                                  onClick={() => setTranscriptCollapsed(!transcriptCollapsed)}
+                                >
+                                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
+                                    <span>Video Transcript</span>
+                                    <svg 
+                                      xmlns="http://www.w3.org/2000/svg" 
+                                      width="16" 
+                                      height="16" 
+                                      viewBox="0 0 24 24" 
+                                      fill="none" 
+                                      stroke="currentColor" 
+                                      strokeWidth="2" 
+                                      strokeLinecap="round" 
+                                      strokeLinejoin="round" 
+                                      className={`ml-2 transition-transform ${transcriptCollapsed ? 'rotate-180' : 'rotate-0'}`}
+                                    >
+                                      <polyline points="6 9 12 15 18 9"></polyline>
+                                    </svg>
+                                  </h2>
+                                  <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                                    <span className="text-sm text-gray-700 dark:text-gray-300">Auto-scroll</span>
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setAutoScroll(!autoScroll);
+                                      }}
+                                      className={`px-2 py-1 text-xs rounded ${
+                                        autoScroll ? 'bg-blue-500 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                                      }`}
+                                    >
+                                      {autoScroll ? 'ON' : 'OFF'}
                                     </button>
+                                  </div>
+                                </div>
+
+                                {!transcriptCollapsed && (
+                                  <div className="bg-gray-50 dark:bg-black relative h-[477px]">
+                                    {/* Transcripción */}
+                                    <div className="h-full p-4 overflow-auto transcript-scroll-area">
+                                      {isLoading ? (
+                                        <div className="flex items-center justify-center h-full">
+                                          <div className="animate-spin h-10 w-10 border-4 border-t-primary border-r-transparent border-b-primary border-l-transparent rounded-full"></div>
+                                        </div>
+                                      ) : videoResult ? (
+                                        <div className="space-y-1">
+                                          {videoResult.split('\n').map((line, i) => (
+                                            <div 
+                                              key={i}
+                                              id={`transcript-line-${i}`}
+                                              className="py-1 px-1 rounded transition-colors"
+                                            >
+                                              {line.match(/^(\d{2}:\d{2})/) ? (
+                                                <div className="flex items-start">
+                                                  <span 
+                                                    className="inline-block bg-white dark:bg-gray-700 text-black dark:text-white text-xs font-mono py-0.5 px-1.5 rounded mr-2 cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600"
+                                                    onClick={() => {
+                                                      const timeMatch = line.match(/^(\d{2}:\d{2})/);
+                                                      if (timeMatch && timeMatch[1]) {
+                                                        handleTranscriptTimeClick(timeMatch[1]);
+                                                      }
+                                                    }}
+                                                  >
+                                                    {(() => {
+                                                      const match = line.match(/^(\d{2}:\d{2})/);
+                                                      return match ? match[1] : "00:00";
+                                                    })()}
+                                                  </span>
+                                                  <span className="text-gray-800 dark:text-gray-200">{line.replace(/^\d{2}:\d{2}\s*/, '')}</span>
+                                                </div>
+                                              ) : (
+                                                <span className="text-gray-800 dark:text-gray-200">{line}</span>
+                                              )}
+                                            </div>
+                                          ))}
+                                        </div>
+                                      ) : (
+                                        <div className="text-gray-500 dark:text-gray-400 text-center h-full flex items-center justify-center">
+                                          Enter a YouTube URL to view the transcription
+                                        </div>
+                                      )}
+                                    </div>
+                                    
+                                    {/* Botones de acción para la transcripción */}
+                                    {videoResult && (
+                                      <div className="absolute bottom-3 right-3 flex space-x-2 z-20">
+                                        <button 
+                                          className="p-2 bg-white dark:bg-gray-800 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors shadow-md"
+                                          onClick={() => {
+                                            navigator.clipboard.writeText(videoResult);
+                                          }}
+                                          title="Copy transcription"
+                                        >
+                                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-600 dark:text-gray-300">
+                                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                                          </svg>
+                                        </button>
+                                        <button 
+                                          className="p-2 bg-white dark:bg-gray-800 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors shadow-md"
+                                          onClick={() => {
+                                            const blob = new Blob([videoResult], { type: "text/plain" });
+                                            const url = window.URL.createObjectURL(blob);
+                                            const a = document.createElement("a");
+                                            a.href = url;
+                                            const fileName = videoUrl ? 
+                                              `transcription_${new Date().toISOString().slice(0, 10)}` : 
+                                              "transcription";
+                                            a.download = `${fileName}.txt`;
+                                            a.click();
+                                          }}
+                                          title="Descargar transcripción"
+                                        >
+                                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-600 dark:text-gray-300">
+                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                            <polyline points="7 10 12 15 17 10"></polyline>
+                                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                                          </svg>
+                                        </button>
+                                      </div>
+                                    )}
                                   </div>
                                 )}
                               </div>
+                            </div>
+                          </div>
+                          
+                          {/* Summarize component in bottom area - outside the grid */}
+                          <div className="mt-8">
+                            {videoResult && (
+                              <YoutubeResume 
+                                initialTranscription={videoResult} 
+                                defaultPosition={{ x: 0, y: 0 }}
+                                defaultSize={youtubeResumeSize}
+                                onPositionChange={setYoutubeResumePosition}
+                                onSizeChange={setYoutubeResumeSize}
+                              />
                             )}
                           </div>
-                        </div>
-                      </div>
-                      
-                      {/* Summarize component in bottom area - outside the grid */}
-                      <div className="mt-8">
-                        {videoResult && (
-                          <YoutubeResume 
-                            initialTranscription={videoResult} 
-                            defaultPosition={{ x: 0, y: 0 }}
-                            defaultSize={youtubeResumeSize}
-                            onPositionChange={setYoutubeResumePosition}
-                            onSizeChange={setYoutubeResumeSize}
-                          />
-                        )}
-                      </div>
-                    </>
-                  )}
+                        </>
+                      )}
 
-                  {activeFeature === 'docAnalyzer' && (
-                    <div className="space-y-4">
-                      <DocumentAnalyzer />
+                      {activeFeature === 'docAnalyzer' && (
+                        <div className="space-y-4">
+                          <DocumentAnalyzer />
+                        </div>
+                      )}
                     </div>
-                  )}
+                  </div>
                 </div>
               </div>
-            </div>
+            </main>
+            
+            <Footer />
           </div>
-        </main>
-        
-        <Footer />
-      </div>
+        </>
+      )}
     </div>
   );
 } 

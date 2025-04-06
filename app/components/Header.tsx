@@ -1,19 +1,19 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { Code2, Sun, Moon, Maximize2, Minimize2 } from "lucide-react";
+import { Code2, Sun, Moon } from "lucide-react";
 import { useTheme } from "next-themes";
 
 interface HeaderProps {
-  onToggleFullscreen: () => void;
-  isFullscreen: boolean;
+  onToggleFullscreen?: () => void;
+  isFullscreen?: boolean;
 }
 
-const Header: React.FC<HeaderProps> = ({ onToggleFullscreen, isFullscreen }) => {
+const Header: React.FC<HeaderProps> = () => {
   const { theme, setTheme } = useTheme();
 
   return (
     <header className="border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-black">
-      <div className="flex justify-between items-center w-full px-2 sm:px-4 py-2 sm:py-4">
+      <div className="flex justify-between items-center w-full px-4 py-2 sm:py-4">
         <div className="w-10"></div>
         
         <div className="absolute left-1/2 transform -translate-x-1/2">
@@ -29,6 +29,7 @@ const Header: React.FC<HeaderProps> = ({ onToggleFullscreen, isFullscreen }) => 
             size="icon"
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
             className="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white p-1 sm:p-2"
+            aria-label="Toggle theme"
           >
             {theme === "dark" ? (
               <Sun className="h-4 w-4 sm:h-5 sm:w-5" />
