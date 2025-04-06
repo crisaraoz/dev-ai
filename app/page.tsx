@@ -737,80 +737,88 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-6">
                     {/* Left Column */}
                     <div className="space-y-3 sm:space-y-6">
-                      <div className="flex items-center gap-2 sm:gap-4">
-                        <LanguageSelector 
-                          language={language} 
-                          setLanguage={setLanguage}
-                          explanationLevel={explanationLevel}
-                          setExplanationLevel={setExplanationLevel}
-                          isDisabled={activeTab === "transcript" || !!videoUrl}
-                        />
-                      </div>
-                      <div className="bg-card rounded-lg overflow-hidden border">
-                        {videoUrl ? (
-                          <YouTubePlayer 
-                            videoUrl={videoUrl} 
-                            onTimeUpdate={handleVideoTimeUpdate}
-                            seekTo={videoSeekTime}
-                            isProcessing={isLoading}
+                      <div className="bg-card rounded-lg overflow-hidden border h-[520px] flex flex-col">
+                        <div className="flex items-center justify-between gap-2 p-3 border-b border-gray-200 dark:border-gray-800">
+                          <div className="flex items-center gap-2 sm:gap-4 overflow-x-auto flex-wrap">
+                            <LanguageSelector 
+                              language={language} 
+                              setLanguage={setLanguage}
+                              explanationLevel={explanationLevel}
+                              setExplanationLevel={setExplanationLevel}
+                              isDisabled={activeTab === "transcript" || !!videoUrl}
+                            />
+                          </div>
+                        </div>
+                        
+                        <div className="relative flex-grow">
+                          {videoUrl ? (
+                            <YouTubePlayer 
+                              videoUrl={videoUrl} 
+                              onTimeUpdate={handleVideoTimeUpdate}
+                              seekTo={videoSeekTime}
+                              isProcessing={isLoading}
+                              onYouTubeUrl={handleYouTubeUrl}
+                            />
+                          ) : (
+                            <div className="h-full w-full flex flex-col items-center justify-center p-4 bg-white dark:bg-black">
+                              <div className="text-4xl font-bold mb-4 text-gray-900 dark:text-gray-300">&lt;/&gt;</div>
+                              <h1 className="text-2xl font-bold mb-8 text-center text-gray-900 dark:text-white">Welcome to AI Dev Tools</h1>
+                              <div className="w-full max-w-md">
+                                <div className="w-full px-4 py-3 bg-gray-100 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 text-gray-700 dark:text-gray-300 text-left">
+                                  Write your code or question to start the conversation
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                        
+                        <div className="p-4 border-t border-gray-200 dark:border-gray-800" style={{ flexShrink: 0 }}>
+                          <InputArea 
+                            code={code}
+                            setCode={setCode}
+                            handleProcess={handleProcess}
+                            selectedMessage={selectedMessage}
+                            isLoading={isLoading}
                             onYouTubeUrl={handleYouTubeUrl}
                           />
-                        ) : (
-                          <div className="flex flex-col items-center justify-center py-8 px-4 sm:p-8 h-[200px] bg-white dark:bg-black rounded-lg">
-                            <div className="text-4xl font-bold mb-4 text-gray-900 dark:text-gray-300">&lt;/&gt;</div>
-                            <h1 className="text-2xl font-bold mb-8 text-center text-gray-900 dark:text-white">Welcome to AI Dev Tools</h1>
-                            <div className="w-full max-w-md">
-                              <button className="w-full px-4 py-3 bg-gray-100 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 text-gray-700 dark:text-gray-300 text-left hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors"
-                                onClick={() => document.querySelector('textarea')?.focus()}>
-                                Write your code or question to start the conversation
-                              </button>
-                            </div>
-                          </div>
-                        )}
+                        </div>
                       </div>
-                      
-                      <InputArea 
-                        code={code}
-                        setCode={setCode}
-                        handleProcess={handleProcess}
-                        selectedMessage={selectedMessage}
-                        isLoading={isLoading}
-                        onYouTubeUrl={handleYouTubeUrl}
-                      />
                     </div>
                     
                     {/* Right Column */}
                     <div className="space-y-2 sm:space-y-4">
-                      <div className="flex items-center justify-between">
-                        <select
-                          value={activeTab}
-                          onChange={(e) => setActiveTab(e.target.value)}
-                          className="text-gray-700 dark:text-gray-300 rounded-lg px-3 py-2 border border-gray-200 dark:border-gray-700 bg-white dark:bg-black"
-                          style={{ 
-                            WebkitAppearance: 'none',
-                            MozAppearance: 'none',
-                            appearance: 'none',
-                            backgroundImage: `url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23444444%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E")`,
-                            backgroundRepeat: 'no-repeat',
-                            backgroundPosition: 'right 0.5rem center',
-                            backgroundSize: '0.65em auto',
-                            paddingRight: '2.5rem'
-                          }}
-                        >
-                          <option value="refactor">Refactor</option>
-                          <option value="explain">Explain</option>
-                          <option value="lint">Lint & Fix</option>
-                          <option value="test">Write Tests</option>
-                        </select>
-                      </div>
-                      
-                      <div className="h-[calc(100vh-300px)] min-h-[300px] lg:min-h-[400px] lg:h-[calc(100vh-340px)] bg-white dark:bg-black rounded-lg border border-gray-200 dark:border-gray-800 p-4 overflow-auto">
-                        <ResultsArea 
-                          result={result} 
-                          isLoading={isLoading}
-                          showTimestamps={activeTab === "transcript"}
-                          onTimeClick={handleTranscriptTimeClick}
-                        />
+                      <div className="bg-card rounded-lg overflow-hidden border h-[520px] flex flex-col">
+                        <div className="flex items-center justify-between p-3 border-b border-gray-200 dark:border-gray-800">
+                          <select
+                            value={activeTab}
+                            onChange={(e) => setActiveTab(e.target.value)}
+                            className="text-gray-700 dark:text-gray-300 rounded-lg px-3 py-2 border border-gray-200 dark:border-gray-700 bg-white dark:bg-black"
+                            style={{ 
+                              WebkitAppearance: 'none',
+                              MozAppearance: 'none',
+                              appearance: 'none',
+                              backgroundImage: `url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23444444%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E")`,
+                              backgroundRepeat: 'no-repeat',
+                              backgroundPosition: 'right 0.5rem center',
+                              backgroundSize: '0.65em auto',
+                              paddingRight: '2.5rem'
+                            }}
+                          >
+                            <option value="refactor">Refactor</option>
+                            <option value="explain">Explain</option>
+                            <option value="lint">Lint & Fix</option>
+                            <option value="test">Write Tests</option>
+                          </select>
+                        </div>
+                        
+                        <div className="flex-grow p-4 overflow-auto">
+                          <ResultsArea 
+                            result={result} 
+                            isLoading={isLoading}
+                            showTimestamps={activeTab === "transcript"}
+                            onTimeClick={handleTranscriptTimeClick}
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
