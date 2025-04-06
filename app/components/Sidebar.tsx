@@ -71,17 +71,6 @@ const Sidebar: React.FC<SidebarProps> = ({
         }`}
       >
         <div className="flex flex-col h-full pt-14 sm:pt-16 pb-4">
-          <div className="flex justify-between items-center px-3 absolute top-2 left-2 right-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onClose}
-              className="h-8 w-8 p-1 text-gray-700 dark:text-gray-300"
-            >
-              <LayoutGrid className="h-5 w-5" />
-            </Button>
-          </div>
-          
           <div className="px-3 sm:px-4 mt-6">
             <Button 
               variant="default" 
