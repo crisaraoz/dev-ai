@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { useTheme } from "next-themes";
-import { Code2, Maximize2 } from "lucide-react";
+import { Code2, Maximize2, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LayoutGrid } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -66,6 +66,7 @@ export default function Home() {
   const [previousScrollPosition, setPreviousScrollPosition] = useState<number>(0);
   const [userScrolling, setUserScrolling] = useState<boolean>(false);
   const [transcriptCollapsed, setTranscriptCollapsed] = useState<boolean>(false);
+  const [summarizeCollapsed, setSummarizeCollapsed] = useState<boolean>(true);
   const scrollTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [youtubeResumePosition, setYoutubeResumePosition] = useState({ x: 20, y: 500 });
   const [youtubeResumeSize, setYoutubeResumeSize] = useState({ width: 500, height: 250 });
@@ -78,6 +79,23 @@ export default function Home() {
   // Asegurarse de que la UI se renderiza correctamente después de cargar
   useEffect(() => {
     setMounted(true);
+    
+    // Detectar si es un dispositivo móvil por el ancho de la ventana
+    const handleResize = () => {
+      // Considerar móvil si el ancho es menor a 768px (estándar para tabletas/móviles)
+      const isMobile = window.innerWidth < 768;
+      setTranscriptCollapsed(isMobile);
+    };
+    
+    // Verificar al cargar
+    handleResize();
+    
+    // Escuchar cambios de tamaño para adaptarse a rotaciones de pantalla
+    window.addEventListener('resize', handleResize);
+    
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
   }, []);
 
   // Efecto para actualizar el panel derecho cuando cambia el mensaje seleccionado
@@ -996,106 +1014,101 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
                     </div>
                   </div>
                   
-                  {/* Summarize YouTube Video Section */}
-                  <div className="mt-6 w-full border rounded-lg shadow-lg p-6 bg-white dark:bg-black">
-                    <div className="flex justify-between items-center mb-4">
-                      <h2 className="text-xl font-semibold flex items-center text-gray-900 dark:text-white">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-gray-700 dark:text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                        Summarize YouTube Video
-                      </h2>
-                      <button className="text-xs bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 px-2 py-1 rounded flex items-center text-gray-700 dark:text-gray-300">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5" />
-                        </svg>
-                        Float
-                      </button>
-                    </div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
-                      Get an AI-generated summary of the video content
-                    </p>
-                    <div className="flex space-x-3 mb-4">
-                      <select 
-                        className="bg-white dark:bg-black border border-gray-300 dark:border-gray-600 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700 dark:text-gray-300"
-                        value={summaryLanguage}
-                        onChange={(e) => setSummaryLanguage(e.target.value)}
+                  {/* YouTube Video Summary - Now with toggle functionality */}
+                  <div className="mt-4">
+                    <div className="bg-white dark:bg-black border border-gray-200 dark:border-gray-800 rounded-lg shadow-lg overflow-hidden">
+                      <div 
+                        className={`flex items-center justify-between p-3 ${summarizeCollapsed ? '' : 'border-b'} border-gray-200 dark:border-gray-800 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-900 transition-colors`}
+                        onClick={() => setSummarizeCollapsed(!summarizeCollapsed)}
                       >
-                        <option value="spanish">Spanish</option>
-                        <option value="english">English</option>
-                      </select>
-                      <button 
-                        className="flex-grow bg-blue-500 hover:bg-blue-600 text-white py-3 px-4 rounded-md flex items-center justify-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-blue-400"
-                        disabled={!videoUrl || !videoResult || isSummarizing}
-                        onClick={handleSummarizeVideo}
-                      >
-                        {isSummarizing ? (
-                          <>
-                            <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                            </svg>
-                            Generating summary...
-                          </>
-                        ) : (
-                          <>
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                            </svg>
-                            Summarize this video
-                          </>
-                        )}
-                      </button>
-                    </div>
-                    
-                    {/* Mensaje informativo cuando no hay transcripción */}
-                    {!videoResult && !isSummarizing && !summaryError && (
-                      <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-400 rounded-md">
-                        <div className="flex items-center">
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
+                          <RefreshCw className="h-5 w-5 mr-2" />
+                          <span>Summarize YouTube Video</span>
+                          <svg 
+                            xmlns="http://www.w3.org/2000/svg" 
+                            width="16" 
+                            height="16" 
+                            viewBox="0 0 24 24" 
+                            fill="none" 
+                            stroke="currentColor" 
+                            strokeWidth="2" 
+                            strokeLinecap="round" 
+                            strokeLinejoin="round" 
+                            className={`ml-2 transition-transform ${summarizeCollapsed ? 'rotate-180' : 'rotate-0'}`}
+                          >
+                            <polyline points="6 9 12 15 18 9"></polyline>
                           </svg>
-                          <span>Please transcribe a video first before generating a summary.</span>
-                        </div>
+                        </h2>
                       </div>
-                    )}
-                    
-                    {/* Mostrar error si existe */}
-                    {summaryError && (
-                      <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 rounded-md">
-                        {summaryError}
-                      </div>
-                    )}
-                    
-                    {/* Área para mostrar el resumen generado */}
-                    {videoSummary && (
-                      <div className="mt-2">
-                        <div className="border border-gray-200 dark:border-gray-700 rounded-md">
-                          <div className="bg-gray-50 dark:bg-gray-800 py-2 px-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-                            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Video Summary</h3>
-                            <div className="flex space-x-2">
-                              <button
-                                className="p-1 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400"
-                                onClick={() => {
-                                  navigator.clipboard.writeText(videoSummary);
-                                  toast.success("Summary copied to clipboard!");
-                                }}
-                                title="Copy to clipboard"
-                              >
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
-                                </svg>
-                              </button>
+                      
+                      {!summarizeCollapsed && (
+                        <div className="p-4">
+                          <div className="flex space-x-2 mb-4">
+                            <select 
+                              className="bg-white dark:bg-black border border-gray-300 dark:border-gray-600 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700 dark:text-gray-300"
+                              value={summaryLanguage}
+                              onChange={(e) => setSummaryLanguage(e.target.value)}
+                            >
+                              <option value="spanish">Spanish</option>
+                              <option value="english">English</option>
+                            </select>
+                            <button 
+                              className="flex-grow bg-blue-500 hover:bg-blue-600 text-white py-3 px-4 rounded-md flex items-center justify-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-blue-400"
+                              disabled={!videoUrl || !videoResult || isSummarizing}
+                              onClick={handleSummarizeVideo}
+                            >
+                              {isSummarizing ? (
+                                <>
+                                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                  </svg>
+                                  Summarizing...
+                                </>
+                              ) : (
+                                'Summarize'
+                              )}
+                            </button>
+                          </div>
+
+                          {isSummarizing && (
+                            <div className="flex justify-center items-center py-8">
+                              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
                             </div>
-                          </div>
-                          <div className="p-4 bg-white dark:bg-black max-h-[500px] overflow-y-auto">
-                            <pre className="whitespace-pre-wrap text-sm text-gray-800 dark:text-gray-200 font-sans">
-                              {videoSummary}
-                            </pre>
-                          </div>
+                          )}
+                          
+                          {!isSummarizing && videoSummary && (
+                            <div className="prose dark:prose-invert max-w-none">
+                              <div className="whitespace-pre-line">{videoSummary}</div>
+                            </div>
+                          )}
+                          
+                          {!isSummarizing && !videoSummary && videoUrl && videoResult && (
+                            <div className="text-center py-8 text-gray-600 dark:text-gray-400">
+                              <p>Click &quot;Summarize&quot; to generate an AI summary of this video.</p>
+                            </div>
+                          )}
+                          
+                          {!videoUrl && (
+                            <div className="text-center py-8 text-gray-600 dark:text-gray-400">
+                              <p>Load a YouTube video to use this feature.</p>
+                            </div>
+                          )}
+                          
+                          {videoUrl && !videoResult && (
+                            <div className="text-center py-8 text-gray-600 dark:text-gray-400">
+                              <p>Waiting for video transcription...</p>
+                            </div>
+                          )}
+                          
+                          {summaryError && (
+                            <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 rounded-md mt-2 text-sm">
+                              <p>{summaryError}</p>
+                            </div>
+                          )}
                         </div>
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </div>
                   </>
                 )}
