@@ -67,6 +67,7 @@ export default function Home() {
   const [userScrolling, setUserScrolling] = useState<boolean>(false);
   const [transcriptCollapsed, setTranscriptCollapsed] = useState<boolean>(false);
   const [summarizeCollapsed, setSummarizeCollapsed] = useState<boolean>(true);
+  const [isMobile, setIsMobile] = useState<boolean>(false);
   const scrollTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [youtubeResumePosition, setYoutubeResumePosition] = useState({ x: 20, y: 500 });
   const [youtubeResumeSize, setYoutubeResumeSize] = useState({ width: 500, height: 250 });
@@ -83,8 +84,9 @@ export default function Home() {
     // Detectar si es un dispositivo móvil por el ancho de la ventana
     const handleResize = () => {
       // Considerar móvil si el ancho es menor a 768px (estándar para tabletas/móviles)
-      const isMobile = window.innerWidth < 768;
-      setTranscriptCollapsed(isMobile);
+      const mobileDetected = window.innerWidth < 768;
+      setIsMobile(mobileDetected);
+      setTranscriptCollapsed(mobileDetected);
     };
     
     // Verificar al cargar
@@ -831,7 +833,7 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
                                 isProcessing={isLoading}
                                 onYouTubeUrl={handleYouTubeUrl}
                               />
-                            ) : (
+                            ) : !isMobile ? (
                               <div 
                                 className="h-full w-full flex flex-col items-center justify-center p-4 transition-all duration-300 hover:bg-gray-100 dark:hover:bg-gray-900 group"
                                 onDragOver={(e) => {
@@ -863,6 +865,19 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
                                 tabIndex={0}
                               >
                                 <p className="text-center text-white font-medium group-hover:text-gray-900 hover:text-gray-900 dark:group-hover:text-white dark:hover:text-white">Drag & Drop or Copy your Youtube URL</p>
+                              </div>
+                            ) : (
+                              <div className="h-full w-full flex flex-col items-center justify-center p-4 bg-zinc-800">
+                                <div className="mb-4 text-5xl text-white/50">
+                                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-16 h-16">
+                                    <path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"></path>
+                                    <polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"></polygon>
+                                  </svg>
+                                </div>
+                                <p className="text-center text-white/80 font-medium mb-4">Paste your YouTube URL here</p>
+                                <div className="w-full max-w-xs rounded-lg bg-white/10 p-1 text-sm text-white/60 text-center">
+                                  👇 Use the input below 👇
+                                </div>
                               </div>
                             )}
                           </div>

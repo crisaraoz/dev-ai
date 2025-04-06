@@ -52,7 +52,7 @@ const Footer: React.FC = () => {
 
         {/* Texto centrado */}
         <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 absolute left-1/2 transform -translate-x-1/2">
-          Developed by CrisAraoz
+          Dev by CrisAraoz
         </p>
 
         {/* Iconos sociales a la derecha */}
