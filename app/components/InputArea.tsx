@@ -61,7 +61,7 @@ const InputArea: React.FC<InputAreaProps> = ({
   return (
     <div className="w-full">
       <div 
-        className={`relative rounded-md ${isDragging ? 'border-2 border-dashed border-primary' : 'border border-gray-200 dark:border-gray-800'}`}
+        className={`relative rounded-lg ${isDragging ? 'border-2 border-dashed border-primary' : 'border border-gray-200 dark:border-gray-800'}`}
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -71,7 +71,7 @@ const InputArea: React.FC<InputAreaProps> = ({
           onChange={(e) => setCode(e.target.value)}
           onPaste={handlePaste}
           placeholder={placeholder}
-          className="min-h-[60px] sm:min-h-[100px] lg:min-h-[120px] font-mono resize-none text-sm sm:text-base pb-12 border-0 text-gray-900 dark:text-gray-100 bg-white dark:bg-black"
+          className="min-h-[60px] sm:min-h-[100px] lg:min-h-[120px] font-mono resize-none text-sm sm:text-base pb-12 border-0 text-gray-900 dark:text-gray-100 bg-white dark:bg-black rounded-lg"
           style={{
             color: 'inherit'
           }}
@@ -82,7 +82,7 @@ const InputArea: React.FC<InputAreaProps> = ({
           <Button 
             onClick={handleProcess} 
             disabled={!code.trim() || isLoading}
-            className="w-20 sm:w-24 text-xs sm:text-sm py-1 px-2 sm:px-3 sm:py-2 h-8 sm:h-10"
+            className="w-20 sm:w-24 text-xs sm:text-sm py-1 px-2 sm:px-3 sm:py-2 h-8 sm:h-10 rounded-lg"
           >
             {isLoading ? (
               <Loader2 className="h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
@@ -93,7 +93,7 @@ const InputArea: React.FC<InputAreaProps> = ({
         </div>
         
         {isDragging && (
-          <div className="absolute inset-0 bg-background/80 flex items-center justify-center rounded-md">
+          <div className="absolute inset-0 bg-background/80 flex items-center justify-center rounded-lg">
             <p className="text-primary text-sm sm:text-base font-medium">Drop your code or YouTube URL here</p>
           </div>
         )}

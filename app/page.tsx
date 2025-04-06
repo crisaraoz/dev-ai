@@ -695,12 +695,19 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
                             onYouTubeUrl={handleYouTubeUrl}
                           />
                         ) : (
-                          <div className="flex flex-col items-center justify-center py-8 px-4 sm:p-8 h-[200px] bg-white dark:bg-black">
+                          <div className="flex flex-col items-center justify-center py-8 px-4 sm:p-8 h-[200px] bg-white dark:bg-black rounded-lg">
                             <div className="text-4xl font-bold mb-4 text-gray-900 dark:text-gray-300">&lt;/&gt;</div>
-                            <h1 className="text-2xl font-bold text-center text-gray-900 dark:text-white">Welcome to AI Dev Tools</h1>
+                            <h1 className="text-2xl font-bold mb-8 text-center text-gray-900 dark:text-white">Welcome to AI Dev Tools</h1>
+                            <div className="w-full max-w-md">
+                              <button className="w-full px-4 py-3 bg-gray-100 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 text-gray-700 dark:text-gray-300 text-left hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors"
+                                onClick={() => document.querySelector('textarea')?.focus()}>
+                                Write your code or question to start the conversation
+                              </button>
+                            </div>
                           </div>
                         )}
                       </div>
+                      
                       <InputArea 
                         code={code}
                         setCode={setCode}
@@ -729,28 +736,32 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
                             paddingRight: '2.5rem'
                           }}
                         >
-                          <option value="refactor" className="bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300">Refactor</option>
-                          <option value="test" className="bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300">Test</option>
-                          <option value="explain" className="bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300">Explain</option>
+                          <option value="refactor">Refactor</option>
+                          <option value="explain">Explain</option>
+                          <option value="lint">Lint & Fix</option>
+                          <option value="test">Write Tests</option>
                         </select>
                       </div>
-
-                      <ResultsArea
-                        result={result}
-                        isLoading={isLoading}
-                        showTimestamps={activeTab === "transcript"}
-                        onTimeClick={handleTranscriptTimeClick}
-                      />
+                      
+                      <div className="h-[calc(100vh-300px)] min-h-[300px] lg:min-h-[400px] lg:h-[calc(100vh-340px)] bg-white dark:bg-black rounded-lg border border-gray-200 dark:border-gray-800 p-4 overflow-auto">
+                        <ResultsArea 
+                          result={result} 
+                          isLoading={isLoading}
+                          showTimestamps={activeTab === "transcript"}
+                          onTimeClick={handleTranscriptTimeClick}
+                        />
+                      </div>
                     </div>
                   </div>
                 )}
 
                 {activeFeature === 'youtube' && (
+                  <>
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-6">
                     {/* Left Column */}
                     <div className="space-y-3">
-                      <div className="bg-card rounded-lg overflow-hidden border">
-                        <div className="relative h-0 pt-[56.25%]">
+                      <div className="bg-card rounded-lg overflow-hidden border h-[520px] flex flex-col">
+                        <div className="relative flex-grow">
                           {/* YouTube player container */}
                           <div id="youtube-player" className="absolute inset-0 bg-zinc-900 dark:bg-zinc-950 flex items-center justify-center">
                             {videoUrl ? (
@@ -763,7 +774,7 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
                               />
                             ) : (
                               <div 
-                                className="h-full w-full flex flex-col items-center justify-center p-4 transition-all duration-300 hover:bg-gray-100 dark:hover:bg-gray-900"
+                                className="h-full w-full flex flex-col items-center justify-center p-4 transition-all duration-300 hover:bg-gray-100 dark:hover:bg-gray-900 group"
                                 onDragOver={(e) => {
                                   e.preventDefault();
                                   e.currentTarget.classList.add('border-2', 'border-dashed', 'border-primary');
@@ -792,7 +803,7 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
                                 }}
                                 tabIndex={0}
                               >
-                                <p className="text-center text-gray-800 dark:text-white">Drag & Drop or Copy your Youtube URL</p>
+                                <p className="text-center text-white font-medium group-hover:text-gray-900 hover:text-gray-900 dark:group-hover:text-white dark:hover:text-white">Drag & Drop or Copy your Youtube URL</p>
                               </div>
                             )}
                           </div>
@@ -894,7 +905,7 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
                                   ))}
                                 </div>
                               ) : (
-                                <div className="text-gray-500 dark:text-gray-400 text-center h-full flex items-center justify-center">
+                                <div className="text-gray-800 dark:text-white text-center h-full flex items-center justify-center">
                                   Enter a YouTube URL to view the transcription
                                 </div>
                               )}
@@ -943,6 +954,43 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
                       </div>
                     </div>
                   </div>
+                  
+                  {/* Summarize YouTube Video Section */}
+                  <div className="mt-6 w-full border rounded-lg shadow-lg p-6 bg-white dark:bg-black">
+                    <div className="flex justify-between items-center mb-4">
+                      <h2 className="text-xl font-semibold flex items-center text-gray-900 dark:text-white">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-gray-700 dark:text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        Summarize YouTube Video
+                      </h2>
+                      <button className="text-xs bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 px-2 py-1 rounded flex items-center text-gray-700 dark:text-gray-300">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5" />
+                        </svg>
+                        Float
+                      </button>
+                    </div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
+                      Get an AI-generated summary of the video content
+                    </p>
+                    <div className="flex space-x-3">
+                      <select className="bg-white dark:bg-black border border-gray-300 dark:border-gray-600 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700 dark:text-gray-300">
+                        <option value="Spanish">Spanish</option>
+                        <option value="English">English</option>
+                      </select>
+                      <button 
+                        className="flex-grow bg-blue-500 hover:bg-blue-600 text-white py-3 px-4 rounded-md flex items-center justify-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-blue-400"
+                        disabled={!videoUrl || !videoResult}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                        Summarize this video
+                      </button>
+                    </div>
+                  </div>
+                  </>
                 )}
 
                 {activeFeature === 'docAnalyzer' && (
