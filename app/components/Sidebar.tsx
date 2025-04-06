@@ -84,8 +84,8 @@ const Sidebar: React.FC<SidebarProps> = ({
           
           <div className="px-3 sm:px-4 mt-6">
             <Button 
-              variant="outline" 
-              className="w-full mb-3 sm:mb-4 text-left flex items-center gap-2 justify-start text-xs sm:text-sm h-9 sm:h-10" 
+              variant="default" 
+              className="w-full mb-3 sm:mb-4 text-left flex items-center gap-2 justify-start text-xs sm:text-sm h-9 sm:h-10 bg-blue-500 hover:bg-blue-600 text-white" 
               onClick={onNewConversation}
             >
               <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4" />

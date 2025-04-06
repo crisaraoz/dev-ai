@@ -61,7 +61,7 @@ const InputArea: React.FC<InputAreaProps> = ({
   return (
     <div className="w-full">
       <div 
-        className={`relative rounded-md ${isDragging ? 'border-2 border-dashed border-primary' : 'border border-input'}`}
+        className={`relative rounded-md ${isDragging ? 'border-2 border-dashed border-primary' : 'border border-gray-200 dark:border-gray-800'}`}
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -71,7 +71,10 @@ const InputArea: React.FC<InputAreaProps> = ({
           onChange={(e) => setCode(e.target.value)}
           onPaste={handlePaste}
           placeholder={placeholder}
-          className="min-h-[60px] sm:min-h-[100px] lg:min-h-[120px] font-mono resize-none text-sm sm:text-base pb-12 border-0"
+          className="min-h-[60px] sm:min-h-[100px] lg:min-h-[120px] font-mono resize-none text-sm sm:text-base pb-12 border-0 text-gray-900 dark:text-gray-100 bg-white dark:bg-black"
+          style={{
+            color: 'inherit'
+          }}
         />
         
         {/* Botón posicionado dentro del área de texto */}
@@ -95,6 +98,35 @@ const InputArea: React.FC<InputAreaProps> = ({
           </div>
         )}
       </div>
+      
+      <style jsx global>{`
+        textarea {
+          color: inherit !important;
+        }
+        
+        .light textarea, html:not(.dark) textarea {
+          color: #000000 !important;
+          background-color: #ffffff !important;
+        }
+        
+        .dark textarea {
+          color: #ffffff !important;
+          background-color: #000000 !important;
+        }
+        
+        ::placeholder {
+          color: #9ca3af !important;
+          opacity: 0.7 !important;
+        }
+        
+        .light ::placeholder, html:not(.dark) ::placeholder {
+          color: #6b7280 !important;
+        }
+        
+        .dark ::placeholder {
+          color: #9ca3af !important;
+        }
+      `}</style>
     </div>
   );
 };

@@ -13,7 +13,7 @@ const Footer: React.FC = () => {
   const { data: session } = useSession();
   
   return (
-    <footer className="w-full py-2 sm:py-3 border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-black">
+    <footer className="w-full py-2 sm:py-3 border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-black mt-auto">
       <div className="container mx-auto px-0 sm:px-2 flex justify-between items-center relative">
         {/* Botón de usuario/logout a la izquierda en la esquina */}
         <div className="pl-2">
