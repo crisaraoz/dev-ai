@@ -2,6 +2,73 @@
 
 AI Dev Tools is an interactive web application that helps developers with code refactoring, test generation, code explanation, YouTube video transcription/summarization, and documentation assistance through an AI-powered interface.
 
+## Demo Screenshots
+
+Here are some screenshots of the YouTube transcription and summarization feature:
+
+### YouTube Video Transcription and Summarization
+
+![YouTube Feature Screenshot 1](/public/images/dark_youtube1.png)
+*YouTube video transcription interface with timestamps*
+
+![YouTube Feature Screenshot 2](/public/images/dark_youtube2.png)
+*Video analysis with synchronized transcript*
+
+![YouTube Feature Screenshot 3](/public/images/dark_youtube3.png)
+*Detailed transcription with interactive controls*
+
+![YouTube Feature Screenshot 4](/public/images/dark_youtube4.png)
+*AI-powered summary of video content*
+
+## Running the Complete Application Locally
+
+This application consists of two parts: a Python backend (FastAPI) and a Next.js frontend. Follow these steps to run the complete application locally:
+
+### Step 1: Start the Backend
+
+The backend requires both the FastAPI server and the Qwen API proxy to be running:
+
+```bash
+# Navigate to the frontend directory (which contains the start script)
+cd C:\Users\LENOVO\OneDrive\Escritorio\FrontEnd\devAI-tool
+
+# Run the startup script that launches both services
+.\start-backend.ps1
+```
+
+This script will:
+- Start the Qwen API proxy in a new window
+- Start the FastAPI server (with hot-reload enabled)
+- Make the backend API available at http://127.0.0.1:8000
+
+### Step 2: Start the Frontend
+
+In a new terminal window:
+
+```bash
+# Navigate to the frontend directory
+cd C:\Users\LENOVO\OneDrive\Escritorio\FrontEnd\devAI-tool
+
+# Start the Next.js development server
+npm run dev
+```
+
+### Step 3: Access the Application
+
+Open your browser and go to [http://localhost:3000](http://localhost:3000) to use the application.
+
+### Troubleshooting
+
+If you encounter issues with the video summarization functionality:
+
+1. Check that both backend services are running
+2. Test the backend API directly:
+   ```bash
+   cd C:\Users\LENOVO\OneDrive\Escritorio\FrontEnd\devAI-tool
+   node test-summary-api.mjs
+   ```
+3. Verify network connections: make sure ports 8000 and 3000 are not blocked by firewalls
+
 ## Features
 
 ### Code Assistant

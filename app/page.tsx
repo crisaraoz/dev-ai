@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { LayoutGrid } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useSession } from "next-auth/react";
+import { toast } from "react-hot-toast";
 
 // Importación de componentes
 import Sidebar from "./components/Sidebar";
@@ -69,6 +70,10 @@ export default function Home() {
   const [youtubeResumePosition, setYoutubeResumePosition] = useState({ x: 20, y: 500 });
   const [youtubeResumeSize, setYoutubeResumeSize] = useState({ width: 500, height: 250 });
   const [activeFeature, setActiveFeature] = useState<'code' | 'youtube' | 'docAnalyzer'>('code');
+  const [videoSummary, setVideoSummary] = useState<string | null>(null);
+  const [isSummarizing, setIsSummarizing] = useState(false);
+  const [summaryError, setSummaryError] = useState<string | null>(null);
+  const [summaryLanguage, setSummaryLanguage] = useState("spanish");
 
   // Asegurarse de que la UI se renderiza correctamente después de cargar
   useEffect(() => {
@@ -600,6 +605,40 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
     }
   };
 
+  // Función para manejar el resumen del video
+  const handleSummarizeVideo = async () => {
+    if (!videoUrl || !videoResult) return;
+    
+    setIsSummarizing(true);
+    setSummaryError(null);
+    setVideoSummary(null);
+    
+    try {
+      const response = await fetch('/api/v1/transcription/summarize', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          transcription: videoResult,
+          language: summaryLanguage
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Error al generar el resumen');
+      }
+      
+      const data = await response.json();
+      setVideoSummary(data.summary);
+    } catch (error) {
+      console.error('Error:', error);
+      setSummaryError('Error al generar el resumen. Por favor intenta de nuevo.');
+    } finally {
+      setIsSummarizing(false);
+    }
+  };
+
   return (
     <div className="h-screen flex flex-col bg-white dark:bg-black">
       {mounted && (
@@ -974,21 +1013,75 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
                     <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
                       Get an AI-generated summary of the video content
                     </p>
-                    <div className="flex space-x-3">
-                      <select className="bg-white dark:bg-black border border-gray-300 dark:border-gray-600 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700 dark:text-gray-300">
-                        <option value="Spanish">Spanish</option>
-                        <option value="English">English</option>
+                    <div className="flex space-x-3 mb-4">
+                      <select 
+                        className="bg-white dark:bg-black border border-gray-300 dark:border-gray-600 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700 dark:text-gray-300"
+                        value={summaryLanguage}
+                        onChange={(e) => setSummaryLanguage(e.target.value)}
+                      >
+                        <option value="spanish">Spanish</option>
+                        <option value="english">English</option>
                       </select>
                       <button 
                         className="flex-grow bg-blue-500 hover:bg-blue-600 text-white py-3 px-4 rounded-md flex items-center justify-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-blue-400"
-                        disabled={!videoUrl || !videoResult}
+                        disabled={!videoUrl || !videoResult || isSummarizing}
+                        onClick={handleSummarizeVideo}
                       >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                        </svg>
-                        Summarize this video
+                        {isSummarizing ? (
+                          <>
+                            <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Generating summary...
+                          </>
+                        ) : (
+                          <>
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                            Summarize this video
+                          </>
+                        )}
                       </button>
                     </div>
+                    
+                    {/* Mostrar error si existe */}
+                    {summaryError && (
+                      <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 rounded-md">
+                        {summaryError}
+                      </div>
+                    )}
+                    
+                    {/* Área para mostrar el resumen generado */}
+                    {videoSummary && (
+                      <div className="mt-2">
+                        <div className="border border-gray-200 dark:border-gray-700 rounded-md">
+                          <div className="bg-gray-50 dark:bg-gray-800 py-2 px-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+                            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Video Summary</h3>
+                            <div className="flex space-x-2">
+                              <button
+                                className="p-1 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400"
+                                onClick={() => {
+                                  navigator.clipboard.writeText(videoSummary);
+                                  toast.success("Summary copied to clipboard!");
+                                }}
+                                title="Copy to clipboard"
+                              >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                                </svg>
+                              </button>
+                            </div>
+                          </div>
+                          <div className="p-4 bg-white dark:bg-black max-h-[500px] overflow-y-auto">
+                            <pre className="whitespace-pre-wrap text-sm text-gray-800 dark:text-gray-200 font-sans">
+                              {videoSummary}
+                            </pre>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                   </>
                 )}
