@@ -1164,6 +1164,25 @@ El componente muestra mensajes de error apropiados y proporciona feedback visual
               background-color: #000000 !important;
             }
             
+            /* YouTube URL input specific styles */
+            input[placeholder="Paste your YouTube URL here"],
+            textarea[placeholder="Paste your YouTube URL here"] {
+              color: #000000 !important;
+            }
+            
+            /* Fix for pre text and code blocks in light mode */
+            html:not(.dark) pre, 
+            html:not(.dark) code,
+            html:not(.dark) .text-gray-900 {
+              color: #000000 !important;
+            }
+            
+            html.dark pre,
+            html.dark code,
+            html.dark .text-gray-100 {
+              color: #d1d5db !important;
+            }
+            
             /* Custom scrollbar styles */
             ::-webkit-scrollbar {
               width: 8px;

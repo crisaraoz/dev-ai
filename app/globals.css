@@ -77,6 +77,30 @@
   }
 }
 
+/* Corregir color de texto en modo claro */
+html.light body,
+html:not(.dark) body {
+  background-color: white;
+  color: black;
+}
+
+/* Corregir color de entrada de texto */
+html.light textarea, 
+html.light input[type="text"],
+html:not(.dark) textarea,
+html:not(.dark) input[type="text"] {
+  color: black !important;
+}
+
+/* Corregir color de texto del placeholder en modo claro */
+html.light textarea::placeholder,
+html.light input::placeholder,
+html:not(.dark) textarea::placeholder,
+html:not(.dark) input::placeholder {
+  color: #6b7280 !important;
+  opacity: 0.7;
+}
+
 /* Estilos personalizados para las pestañas */
 [role="tabpanel"] {
   transform: translateX(0);
@@ -122,6 +146,29 @@
   color: #cccccc !important;
 }
 
+/* Estilos de light mode para select y options */
+.light select,
+html:not(.dark) select {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  border-color: #d1d1d1 !important;
+}
+
+.light select option,
+html:not(.dark) select option {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  padding: 10px 14px !important;
+}
+
+.light select option:checked,
+.light select option:hover,
+html:not(.dark) select option:checked,
+html:not(.dark) select option:hover {
+  background-color: #f3f4f6 !important;
+  color: #111827 !important;
+}
+
 /* Solución para navegadores WebKit */
 @media screen and (-webkit-min-device-pixel-ratio:0) { 
   .dark select {
@@ -134,5 +181,20 @@
   
   .dark select option:checked {
     background-color: #222222 !important;
+  }
+  
+  .light select,
+  html:not(.dark) select {
+    border-radius: 4px !important;
+  }
+  
+  .light select option,
+  html:not(.dark) select option {
+    background-color: #ffffff !important;
+  }
+  
+  .light select option:checked,
+  html:not(.dark) select option:checked {
+    background-color: #f3f4f6 !important;
   }
 }
